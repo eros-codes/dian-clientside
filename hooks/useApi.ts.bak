@@ -1,0 +1,712 @@
+// useApi.ts// useApi.ts
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+import { ErrorHelper } from '@/lib/error-helper';
+
+import {import { ErrorHelper } from '@/lib/error-helper';
+
+  productsApi,imp    onError: (error: ApiError) => {
+
+  categoriesApi,      const stockError = ErrorHelper.parseStockError(error);
+
+  ordersApi,      
+
+  returnsApi,      if (stockError) {
+
+  authApi,        const product = queryClient.getQueryData<any>(['product', stockError.productId]);
+
+  usersApi,        const productName = product?.name || 'محصول';
+
+  inventoryApi,        
+
+  setAccessToken,        toast.error(
+
+  ApiError,          `متاسفانه موجودی ${productName} کافی نیست.\n` +
+
+} from "@/lib/api";          `موجودی فعلی: ${stockError.current} عدد\n` +
+
+import { useAuthStore } from "@/stores/authStore";          `تعداد درخواستی: ${stockError.requested} عدد`
+
+import { getDefaultUserId } from "@/lib/utils";        );
+
+import { toast } from "sonner";      } else {
+
+        toast.error(ErrorHelper.getErrorMessage(error) || "خطا در ثبت سفارش");
+
+// Products hooks      },
+
+export function useProducts(params?: {  categoriesApi,
+
+  search?: string;  ordersApi,
+
+  category?: string;  returnsApi,
+
+  brand?: string;  authApi,
+
+  skip?: number;  usersApi,
+
+  take?: number;  inventoryApi,
+
+}) {  setAccessToken,
+
+  return useQuery({  ApiError,
+
+    queryKey: ["products", params],} from "@/lib/api";
+
+    queryFn: () => productsApi.getProducts(params),import { useAuthStore } from "@/stores/authStore";
+
+    retry: 2,import { getDefaultUserId } from "@/lib/utils";
+
+    retryDelay: 1000,import { toast } from "sonner";
+
+    staleTime: 5 * 60 * 1000, // 5 minutes
+
+    gcTime: 10 * 60 * 1000, // 10 minutes// Products hooks
+
+  });export function useProducts(params?: {
+
+}  search?: string;
+
+  category?: string;
+
+export function useProduct(id: string) {  brand?: string;
+
+  return useQuery({  skip?: number;
+
+    queryKey: ["product", id],  take?: number;
+
+    queryFn: () => productsApi.getProduct(id),}) {
+
+    enabled: !!id,  return useQuery({
+
+  });    queryKey: ["products", params],
+
+}    queryFn: () => productsApi.getProducts(params),
+
+    retry: 2,
+
+// Categories hooks    retryDelay: 1000,
+
+export function useCategories() {    staleTime: 5 * 60 * 1000, // 5 minutes
+
+  return useQuery({    gcTime: 10 * 60 * 1000, // 10 minutes
+
+    queryKey: ["categories"],  });
+
+    queryFn: () => categoriesApi.getCategories(),}
+
+    retry: 2,
+
+    retryDelay: 1000,export function useProduct(id: string) {
+
+    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes  return useQuery({
+
+    gcTime: 20 * 60 * 1000, // 20 minutes    queryKey: ["product", id],
+
+  });    queryFn: () => productsApi.getProduct(id),
+
+}    enabled: !!id,
+
+  });
+
+export function useCategory(id: string) {}
+
+  return useQuery({
+
+    queryKey: ["category", id],// Categories hooks
+
+    queryFn: () => categoriesApi.getCategory(id),export function useCategories() {
+
+    enabled: !!id,  return useQuery({
+
+  });    queryKey: ["categories"],
+
+}    queryFn: () => categoriesApi.getCategories(),
+
+    retry: 2,
+
+// Orders hooks    retryDelay: 1000,
+
+export function useUpdateOrderStatus() {    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+
+  const queryClient = useQueryClient();    gcTime: 20 * 60 * 1000, // 20 minutes
+
+  });
+
+  return useMutation({}
+
+    mutationFn: ({ id, status }: { id: string; status: string }) => 
+
+      ordersApi.updateOrderStatus(id, status),export function useCategory(id: string) {
+
+    onSuccess: (_, variables) => {  return useQuery({
+
+      queryClient.invalidateQueries({ queryKey: ["orders"] });    queryKey: ["category", id],
+
+      queryClient.invalidateQueries({ queryKey: ["order", variables.id] });    queryFn: () => categoriesApi.getCategory(id),
+
+      toast.success("وضعیت سفارش با موفقیت بروزرسانی شد");    enabled: !!id,
+
+    },  });
+
+    onError: (error: ApiError) => {}
+
+      const stockError = ErrorHelper.parseStockError(error);
+
+      // Orders hooks
+
+      if (stockError) {export function useUpdateOrderStatus() {
+
+        const product = queryClient.getQueryData<any>(['product', stockError.productId]);  const queryClient = useQueryClient();
+
+        const productName = product?.name || 'محصول';
+
+          return useMutation({
+
+        toast.error(    mutationFn: ({ id, status }: { id: string; status: string }) => 
+
+          `متاسفانه موجودی ${productName} کافی نیست.\n` +      ordersApi.updateOrderStatus(id, status),
+
+          `موجودی فعلی: ${stockError.current} عدد\n` +    onSuccess: (_, variables) => {
+
+          `تعداد درخواستی: ${stockError.requested} عدد`      queryClient.invalidateQueries({ queryKey: ["orders"] });
+
+        );      queryClient.invalidateQueries({ queryKey: ["order", variables.id] });
+
+      } else {      toast.success("وضعیت سفارش با موفقیت بروزرسانی شد");
+
+        toast.error(ErrorHelper.getErrorMessage(error) || "خطا در بروزرسانی وضعیت سفارش");    },
+
+      }    onError: (error: ApiError) => {
+
+    },      const stockError = ErrorHelper.parseStockError(error);
+
+  });      
+
+}      if (stockError) {
+
+        const product = queryClient.getQueryData<any>(['product', stockError.productId]);
+
+export function useOrders(params?: {        const productName = product?.name || 'محصول';
+
+  status?: string;        
+
+  skip?: number;        toast.error(
+
+  take?: number;          `متاسفانه موجودی ${productName} کافی نیست.\n` +
+
+  userId?: string;          `موجودی فعلی: ${stockError.current} عدد\n` +
+
+}) {          `تعداد درخواستی: ${stockError.requested} عدد`
+
+  // Create a stable params object        );
+
+  const stableParams = {      } else {
+
+    status: params?.status,        toast.error(ErrorHelper.getErrorMessage(error) || "خطا در بروزرسانی وضعیت سفارش");
+
+    skip: params?.skip,      }
+
+    take: params?.take,    },
+
+    userId: params?.userId  });
+
+  };}
+
+
+
+  // Create a stable query key that includes all paramsexport function useOrders(params?: {
+
+  const queryKey = ["orders", stableParams];  status?: string;
+
+    skip?: number;
+
+  return useQuery({  take?: number;
+
+    queryKey,  userId?: string;
+
+    queryFn: () => ordersApi.getOrders(stableParams),}) {
+
+    enabled: Boolean(stableParams.userId),  // Create a stable params object
+
+    retry: 1,  const stableParams = {
+
+    staleTime: 5 * 60 * 1000,    status: params?.status,
+
+    gcTime: 10 * 60 * 1000,    skip: params?.skip,
+
+  });    take: params?.take,
+
+}    userId: params?.userId
+
+  };
+
+export function useOrder(id: string, userId?: string) {
+
+  return useQuery({  // Create a stable query key that includes all params
+
+    queryKey: ["order", userId, id],  const queryKey = ["orders", stableParams];
+
+    queryFn: async () => {  
+
+      // Fetch the order from API  return useQuery({
+
+      const order = await ordersApi.getOrder(id);    queryKey,
+
+    queryFn: () => ordersApi.getOrders(stableParams),
+
+      // Check if this order belongs to the provided userId    enabled: Boolean(stableParams.userId),
+
+      if (order.userId !== userId) {    retry: 1,
+
+        throw new Error("Order not found or access denied");    staleTime: 5 * 60 * 1000,
+
+      }    gcTime: 10 * 60 * 1000,
+
+  });
+
+      return order;}
+
+    },
+
+    enabled: !!id && !!userId,export function useOrder(id: string, userId?: string) {
+
+  });  return useQuery({
+
+}    queryKey: ["order", userId, id],
+
+    queryFn: async () => {
+
+export function useCreateOrder() {      // Fetch the order from API
+
+  const queryClient = useQueryClient();      const order = await ordersApi.getOrder(id);
+
+
+
+  return useMutation({      // Check if this order belongs to the provided userId
+
+    mutationFn: ordersApi.createOrder,      if (order.userId !== userId) {
+
+    onSuccess: () => {        throw new Error("Order not found or access denied");
+
+      queryClient.invalidateQueries({ queryKey: ["orders"] });      }
+
+      toast.success("سفارش شما با موفقیت ثبت شد");
+
+    },      return order;
+
+    onError: (error: ApiError) => {    },
+
+      const stockError = ErrorHelper.parseStockError(error);    enabled: !!id && !!userId,
+
+        });
+
+      if (stockError) {}
+
+        const product = queryClient.getQueryData<any>(['product', stockError.productId]);
+
+        const productName = product?.name || 'محصول';export function useCreateOrder() {
+
+          const queryClient = useQueryClient();
+
+        toast.error(
+
+          `متاسفانه موجودی ${productName} کافی نیست.\n` +  return useMutation({
+
+          `موجودی فعلی: ${stockError.current} عدد\n` +    mutationFn: ordersApi.createOrder,
+
+          `تعداد درخواستی: ${stockError.requested} عدد`    onSuccess: () => {
+
+        );      queryClient.invalidateQueries({ queryKey: ["orders"] });
+
+      } else {      toast.success("سفارش شما با موفقیت ثبت شد");
+
+        toast.error(ErrorHelper.getErrorMessage(error) || "خطا در ثبت سفارش");    },
+
+      }    onError: (error: ApiError) => {
+
+    },      const errorMsg = error.data?.message || error.message;
+
+  });      
+
+}      if (errorMsg?.includes('موجودی محصول کافی نیست')) {
+
+        // جدا کردن شناسه محصول از پیام خطا
+
+// Returns hooks        const productId = errorMsg.match(/محصول کافی نیست: (.*?)\. /)?.[1];
+
+export function useReturns(params?: {        const current = errorMsg.match(/موجودی: (\d+)/)?.[1];
+
+  orderId?: string;        const requested = errorMsg.match(/درخواستی: (\d+)/)?.[1];
+
+  status?: string;        
+
+  skip?: number;        const product = queryClient.getQueryData<any>(['product', productId]);
+
+  take?: number;        const productName = product?.name || 'محصول';
+
+}) {        
+
+  const { isAuthenticated, user } = useAuthStore();        toast.error(
+
+          `متاسفانه موجودی ${productName} کافی نیست.\n` +
+
+  return useQuery({          `موجودی فعلی: ${current || 0} عدد\n` +
+
+    queryKey: ["returns", user?.id, params],          `تहداد درخواستی: ${requested || 0} عدد`
+
+    queryFn: async () => {        );
+
+      // فقط داده خام را از API بگیر      } else {
+
+      return await returnsApi.getReturns(params);        toast.error(errorMsg || "خطا در ثبت سفارش");
+
+    },      }
+
+    enabled: isAuthenticated && !!user?.id,    },
+
+    retry: 2,  });
+
+    staleTime: 5 * 60 * 1000,}
+
+  });
+
+}// Returns hooks
+
+export function useReturns(params?: {
+
+export function useReturn(id: string) {  orderId?: string;
+
+  const { isAuthenticated, user } = useAuthStore();  status?: string;
+
+  skip?: number;
+
+  return useQuery({  take?: number;
+
+    queryKey: ["return", user?.id, id],}) {
+
+    queryFn: async () => {  const { isAuthenticated, user } = useAuthStore();
+
+      // Fetch the return from API
+
+      const returnItem = await returnsApi.getReturn(id);  return useQuery({
+
+    queryKey: ["returns", user?.id, params],
+
+      // Check if this return belongs to the current user    queryFn: async () => {
+
+      if (returnItem.userId !== user?.id) {      // فقط داده خام را از API بگیر
+
+        throw new Error("Return not found or access denied");      return await returnsApi.getReturns(params);
+
+      }    },
+
+    enabled: isAuthenticated && !!user?.id,
+
+      return returnItem;    retry: 2,
+
+    },    staleTime: 5 * 60 * 1000,
+
+    enabled: isAuthenticated && !!user?.id && !!id,  });
+
+  });}
+
+}
+
+export function useReturn(id: string) {
+
+export function useCreateReturn() {  const { isAuthenticated, user } = useAuthStore();
+
+  const queryClient = useQueryClient();
+
+  return useQuery({
+
+  return useMutation({    queryKey: ["return", user?.id, id],
+
+    // حذف userId از پارامتر    queryFn: async () => {
+
+    mutationFn: (data: { orderId: string; reason: string; refundAmount: number }) =>      // Fetch the return from API
+
+      returnsApi.createReturn({      const returnItem = await returnsApi.getReturn(id);
+
+        orderId: data.orderId,
+
+        reason: data.reason,      // Check if this return belongs to the current user
+
+        refundAmount: data.refundAmount,      if (returnItem.userId !== user?.id) {
+
+      }),        throw new Error("Return not found or access denied");
+
+    onSuccess: () => {      }
+
+      queryClient.invalidateQueries({ queryKey: ["returns"] });
+
+      toast.success("درخواست مرجوعی شما ثبت شد");      return returnItem;
+
+    },    },
+
+    onError: (error: ApiError) => {    enabled: isAuthenticated && !!user?.id && !!id,
+
+      toast.error(error.message || "خطا در ثبت درخواست مرجوعی");  });
+
+    },}
+
+  });
+
+}export function useCreateReturn() {
+
+  const queryClient = useQueryClient();
+
+// Auth hooks
+
+export function useLogin() {  return useMutation({
+
+  const { setUser, setTokens } = useAuthStore();    // حذف userId از پارامتر
+
+    mutationFn: (data: { orderId: string; reason: string; refundAmount: number }) =>
+
+  return useMutation({      returnsApi.createReturn({
+
+    mutationFn: authApi.login,        orderId: data.orderId,
+
+    onSuccess: (data) => {        reason: data.reason,
+
+      // Handle API response structure: { success: true, data: { accessToken, refreshToken, user } }        refundAmount: data.refundAmount,
+
+      const responseData = data.data || data;      }),
+
+    onSuccess: () => {
+
+      setTokens(responseData.accessToken, responseData.refreshToken);      queryClient.invalidateQueries({ queryKey: ["returns"] });
+
+      setAccessToken(responseData.accessToken);      toast.success("درخواست مرجوعی شما ثبت شد");
+
+    },
+
+      // Store tokens in localStorage    onError: (error: ApiError) => {
+
+      localStorage.setItem("accessToken", responseData.accessToken);      toast.error(error.message || "خطا در ثبت درخواست مرجوعی");
+
+      localStorage.setItem("refreshToken", responseData.refreshToken);    },
+
+  });
+
+      // Check if backend provides user data}
+
+      if (responseData.user) {
+
+        // Add missing fields to match User interface// Auth hooks
+
+        const userData = {export function useLogin() {
+
+          ...responseData.user,  const { setUser, setTokens } = useAuthStore();
+
+          isActive: true, // Default to active
+
+          createdAt: new Date().toISOString(),  return useMutation({
+
+          updatedAt: new Date().toISOString(),    mutationFn: authApi.login,
+
+        };    onSuccess: (data) => {
+
+        setUser(userData);      // Handle API response structure: { success: true, data: { accessToken, refreshToken, user } }
+
+        localStorage.setItem("userData", JSON.stringify(userData));      const responseData = data.data || data;
+
+      } else {
+
+        // Fallback user data if backend doesn't provide user info      setTokens(responseData.accessToken, responseData.refreshToken);
+
+        const fallbackUser = {      setAccessToken(responseData.accessToken);
+
+          id: getDefaultUserId(),
+
+          email: "",      // Store tokens in localStorage
+
+          firstName: "کاربر",      localStorage.setItem("accessToken", responseData.accessToken);
+
+          lastName: "فعلی",      localStorage.setItem("refreshToken", responseData.refreshToken);
+
+          role: "USER" as const,
+
+          isActive: true,      // Check if backend provides user data
+
+          createdAt: new Date().toISOString(),      if (responseData.user) {
+
+          updatedAt: new Date().toISOString(),        // Add missing fields to match User interface
+
+        };        const userData = {
+
+        setUser(fallbackUser);          ...responseData.user,
+
+        localStorage.setItem("userData", JSON.stringify(fallbackUser));          isActive: true, // Default to active
+
+      }          createdAt: new Date().toISOString(),
+
+      toast.success("با موفقیت وارد شدید");          updatedAt: new Date().toISOString(),
+
+    },        };
+
+    onError: (error: any) => {        setUser(userData);
+
+      const message = error?.message || "ایمیل یا رمز عبور اشتباه است";        localStorage.setItem("userData", JSON.stringify(userData));
+
+      // Debug: surface error details in console to help trace mysterious reloads      } else {
+
+      // eslint-disable-next-line no-console        // Fallback user data if backend doesn't provide user info
+
+      console.debug('[useLogin] onError', { error, message });        const fallbackUser = {
+
+      toast.error(message);          id: getDefaultUserId(),
+
+    },          email: "",
+
+  });          firstName: "کاربر",
+
+}          lastName: "فعلی",
+
+          role: "USER" as const,
+
+export function useRegister() {          isActive: true,
+
+  const { setUser, setTokens } = useAuthStore();          createdAt: new Date().toISOString(),
+
+          updatedAt: new Date().toISOString(),
+
+  return useMutation({        };
+
+    mutationFn: authApi.register,        setUser(fallbackUser);
+
+    onSuccess: (data, variables) => {        localStorage.setItem("userData", JSON.stringify(fallbackUser));
+
+      // Handle API response structure: { success: true, data: { accessToken, refreshToken, user } }      }
+
+      const responseData = data.data || data;      toast.success("با موفقیت وارد شدید");
+
+    },
+
+      setTokens(responseData.accessToken, responseData.refreshToken);    onError: (error: any) => {
+
+      setAccessToken(responseData.accessToken);      const message = error?.message || "ایمیل یا رمز عبور اشتباه است";
+
+      // Debug: surface error details in console to help trace mysterious reloads
+
+      // Store tokens in localStorage      // eslint-disable-next-line no-console
+
+      localStorage.setItem("accessToken", responseData.accessToken);      console.debug('[useLogin] onError', { error, message });
+
+      localStorage.setItem("refreshToken", responseData.refreshToken);      toast.error(message);
+
+    },
+
+      // Check if backend provides user data  });
+
+      if (responseData.user) {}
+
+        // Add missing fields to match User interface
+
+        const userData = {export function useRegister() {
+
+          ...responseData.user,  const { setUser, setTokens } = useAuthStore();
+
+          isActive: true, // Default to active
+
+          createdAt: new Date().toISOString(),  return useMutation({
+
+          updatedAt: new Date().toISOString(),    mutationFn: authApi.register,
+
+        };    onSuccess: (data, variables) => {
+
+        setUser(userData);      // Handle API response structure: { success: true, data: { accessToken, refreshToken, user } }
+
+        localStorage.setItem("userData", JSON.stringify(userData));      const responseData = data.data || data;
+
+      } else {
+
+        // Create user data from registration info      setTokens(responseData.accessToken, responseData.refreshToken);
+
+        const newUser = {      setAccessToken(responseData.accessToken);
+
+          id: getDefaultUserId(),
+
+          email: variables.email,      // Store tokens in localStorage
+
+          firstName: variables.firstName,      localStorage.setItem("accessToken", responseData.accessToken);
+
+          lastName: variables.lastName,      localStorage.setItem("refreshToken", responseData.refreshToken);
+
+          role: (variables.role as any) || "USER",
+
+          isActive: true,      // Check if backend provides user data
+
+          createdAt: new Date().toISOString(),      if (responseData.user) {
+
+          updatedAt: new Date().toISOString(),        // Add missing fields to match User interface
+
+        };        const userData = {
+
+        setUser(newUser);          ...responseData.user,
+
+        localStorage.setItem("userData", JSON.stringify(newUser));          isActive: true, // Default to active
+
+      }          createdAt: new Date().toISOString(),
+
+      toast.success("حساب کاربری شما ایجاد شد");          updatedAt: new Date().toISOString(),
+
+    },        };
+
+    onError: (error: any) => {        setUser(userData);
+
+      const message = error?.message || "خطا در ایجاد حساب کاربری";        localStorage.setItem("userData", JSON.stringify(userData));
+
+      toast.error(message);      } else {
+
+    },        // Create user data from registration info
+
+  });        const newUser = {
+
+}          id: getDefaultUserId(),
+
+          email: variables.email,
+
+export function useChangePassword() {          firstName: variables.firstName,
+
+  return useMutation({          lastName: variables.lastName,
+
+    mutationFn: authApi.changePassword,          role: (variables.role as any) || "USER",
+
+    onSuccess: () => {          isActive: true,
+
+      toast.success("رمز عبور با موفقیت تغییر کرد");          createdAt: new Date().toISOString(),
+
+    },          updatedAt: new Date().toISOString(),
+
+    onError: (error: ApiError) => {        };
+
+      toast.error(error.message || "خطا در تغییر رمز عبور");        setUser(newUser);
+
+    },        localStorage.setItem("userData", JSON.stringify(newUser));
+
+  });      }
+
+}      toast.success("حساب کاربری شما ایجاد شد");
+    },
+    onError: (error: any) => {
+      const message = error?.message || "خطا در ایجاد حساب کاربری";
+      toast.error(message);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: authApi.changePassword,
+    onSuccess: () => {
+      toast.success("رمز عبور با موفقیت تغییر کرد");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "خطا در تغییر رمز عبور");
+    },
+  });
+}

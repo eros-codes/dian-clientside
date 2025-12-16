@@ -1,0 +1,236 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { useCartStore } from '@/stores/cartStore';
+
+export interface CartItem {
+  id: string;
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  baseUnitPrice: number;
+  optionsSubtotal: number;
+  options: Record<string, any>[];
+}
+
+export interface SharedCart {
+  id: string;
+  tableId: string;
+  items: CartItem[];
+  totalItems: number;
+  totalAmount: number;
+  updatedAt: string;
+}
+
+/**
+ * Hook for managing shared table carts with real-time sync
+ * میز کو share کرتے ہوئے real-time sync فراہم کرتا ہے
+ */
+export const useSharedCart = (tableId?: string) => {
+  const socketRef = useRef<any>(null);
+  const {
+    setTableId,
+    items,
+    clearCart: storeClearCart,
+  } = useCartStore();
+
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  // Helper to update local store from server cart
+  const updateLocalStore = (cart: SharedCart) => {
+    if (cart.items.length === 0) {
+      storeClearCart();
+    }
+  };
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    if (!tableId) return;
+
+    setTableId(tableId);
+
+    const initSocket = async () => {
+      if (typeof window === 'undefined') return;
+
+      try {
+        const { io } = await import('socket.io-client');
+
+        const socketUrl = apiBaseUrl
+          .replace(/\/api\/?$/, '')
+          .replace(/\/$/, '');
+
+        socketRef.current = io(socketUrl, {
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 5,
+          transports: ['websocket', 'polling'],
+        });
+
+        socketRef.current.on('connect', () => {
+          console.log('🔗 Connected to cart server');
+          socketRef.current.emit('joinCart', { tableId, userId: undefined });
+        });
+
+        socketRef.current.on('cartSubscribed', (data: any) => {
+          console.log('📊 Subscribed to cart:', data);
+        });
+
+        socketRef.current.on('cartUpdated', (data: { cart: SharedCart }) => {
+          console.log('🔄 Cart updated from server:', data.cart);
+          updateLocalStore(data.cart);
+        });
+
+        socketRef.current.on('userJoined', (data: any) => {
+          console.log('👥 User joined cart:', data);
+        });
+
+        socketRef.current.on('userLeft', (data: any) => {
+          console.log('👥 User left cart:', data);
+        });
+
+        socketRef.current.on('error', (error: any) => {
+          console.error('❌ Socket error:', error);
+        });
+
+        socketRef.current.on('disconnect', () => {
+          console.log('❌ Disconnected from cart server');
+        });
+      } catch (error) {
+        console.error('Failed to initialize socket:', error);
+      }
+    };
+
+    initSocket();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.emit('leaveCart', { tableId });
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, [tableId, setTableId]);
+
+  // Add item to shared cart
+  const addItem = async (
+    productId: string,
+    quantity: number,
+    unitPrice: number,
+    baseUnitPrice: number,
+    optionsSubtotal?: number,
+    options?: Record<string, any>[] | null,
+  ) => {
+    if (!tableId) throw new Error('Table ID not set');
+
+    try {
+      const url = `${apiBaseUrl}/api/shared-carts/${tableId}/items`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          quantity,
+          unitPrice,
+          baseUnitPrice,
+          optionsSubtotal: optionsSubtotal || 0,
+          options: options || [],
+        }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as SharedCart;
+      updateLocalStore(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to add item to shared cart:', error);
+      throw error;
+    }
+  };
+
+  // Update item quantity
+  const updateQuantity = async (itemId: string, quantity: number) => {
+    if (!tableId) throw new Error('Table ID not set');
+
+    try {
+      const url = `${apiBaseUrl}/api/shared-carts/${tableId}/items/${itemId}`;
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity }),
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as SharedCart;
+      updateLocalStore(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to update item quantity:', error);
+      throw error;
+    }
+  };
+
+  // Remove item
+  const removeItemAsync = async (itemId: string) => {
+    if (!tableId) throw new Error('Table ID not set');
+
+    try {
+      const url = `${apiBaseUrl}/api/shared-carts/${tableId}/items/${itemId}`;
+      const response = await fetch(url, { method: 'DELETE' });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as SharedCart;
+      updateLocalStore(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+      throw error;
+    }
+  };
+
+  // Get current cart
+  const fetchCart = async () => {
+    if (!tableId) throw new Error('Table ID not set');
+
+    try {
+      const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
+      const response = await fetch(url);
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as SharedCart;
+      updateLocalStore(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch cart:', error);
+      throw error;
+    }
+  };
+
+  // Clear cart
+  const clearCartAsync = async () => {
+    if (!tableId) throw new Error('Table ID not set');
+
+    try {
+      const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
+      const response = await fetch(url, { method: 'DELETE' });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = (await response.json()) as SharedCart;
+      updateLocalStore(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to clear cart:', error);
+      throw error;
+    }
+  };
+
+  return {
+    items,
+    addItem,
+    updateQuantity,
+    removeItem: removeItemAsync,
+    fetchCart,
+    clearCart: clearCartAsync,
+    isConnected: socketRef.current?.connected || false,
+  };
+};

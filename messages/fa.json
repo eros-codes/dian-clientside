@@ -1,0 +1,143 @@
+{
+  "common": {
+    "loading": "در حال بارگذاری...",
+    "error": "خطایی رخ داده است",
+    "save": "ذخیره",
+    "cancel": "لغو",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "back": "بازگشت",
+    "search": "جستجو",
+    "next": "بعدی",
+    "previous": "قبلی",
+    "submit": "ارسال",
+    "close": "بستن"
+  },
+  "navigation": {
+    "home": "خانه",
+    "products": "محصولات",
+    "orders": "سفارش‌ها",
+    "returns": "مرجوعی‌ها",
+    "profile": "پروفایل",
+    "cart": "سبد خرید",
+    "login": "ورود",
+    "register": "ثبت‌نام",
+    "logout": "خروج"
+  },
+  "Header": "هدر",
+  "auth": {
+    "login": "ورود",
+    "register": "ثبت نام",
+    "email": "ایمیل",
+    "password": "رمز عبور",
+    "firstName": "نام",
+    "lastName": "نام خانوادگی",
+    "confirmPassword": "تکرار رمز عبور",
+    "forgotPassword": "فراموشی رمز عبور",
+    "changePassword": "تغییر رمز عبور",
+    "currentPassword": "رمز عبور فعلی",
+    "newPassword": "رمز عبور جدید",
+    "sendingVerification": "در حال ارسال کد..."
+  },
+  "products": {
+    "title": "محصولات",
+    "category": "دسته",
+    "brand": "برند",
+    "price": "قیمت",
+    "addToCart": "افزودن به سبد",
+    "outOfStock": "ناموجود",
+    "inStock": "موجود",
+    "description": "توضیحات",
+    "specifications": "مشخصات",
+    "reviews": "نظرات",
+    "moreDetails": "جزئیات بیشتر",
+    "tableSessionRequired": "برای ثبت سفارش لطفاً QR روی میز را اسکن کنید.",
+    "unavailableMessage": "این محصول در حال حاضر ناموجود است.",
+    "options": {
+      "dialogTitle": "افزودن افزودنی‌ها",
+      "instructions": "می‌توانید چند گزینه را هم‌زمان انتخاب کنید.",
+      "priceSuffix": "افزایش قیمت",
+      "unavailable": "ناموجود",
+      "emptyState": "برای این محصول افزودنی فعالی ثبت نشده است.",
+      "totalLabel": "جمع افزودنی‌های انتخابی",
+      "confirmLabel": "افزودن به سبد",
+      "sectionTitle": "افزودنی‌های محصول",
+      "configureLabel": "انتخاب افزودنی‌ها",
+      "configurePrimary": "انتخاب افزودنی و افزودن",
+      "editSelection": "ویرایش افزودنی‌ها",
+      "noneSelected": "هیچ افزودنی‌ای انتخاب نشده است.",
+      "selectionSummary": "افزودنی‌های انتخاب‌شده",
+      "selectedBadge": "انتخاب شده",
+      "allUnavailable": "تمام افزودنی‌های این محصول در حال حاضر غیرفعال هستند."
+    }
+  },
+  "cart": {
+    "title": "سبد خرید",
+    "empty": "سبد خرید شما خالی است.",
+    "quantity": "تعداد",
+    "unitPrice": "قیمت واحد",
+    "totalPrice": "جمع کل",
+    "checkout": "تسویه‌حساب",
+    "remove": "حذف",
+    "selectedOptions": "افزودنی‌های انتخاب‌شده"
+  },
+  "checkout": {
+    "reviewHeading": "بررسی نهایی سفارش",
+    "summaryHeading": "خلاصه سفارش",
+    "itemsSubtotal": "قیمت کالاها",
+    "serviceFee": "هزینه خدمات",
+    "taxLabel": "مالیات ({rate})",
+    "discountLabel": "تخفیف ویژه ({rate})",
+    "totalLabel": "مجموع کل",
+    "itemQuantity": "تعداد: {quantity} عدد",
+    "itemQuantityCompact": "× {quantity}",
+    "withAddOns": "همراه با {options}"
+  },
+  "orders": {
+    "title": "سفارش‌ها",
+    "orderNumber": "شماره سفارش",
+    "orderDate": "تاریخ سفارش",
+    "totalAmount": "مبلغ کل",
+    "status": "وضعیت",
+    "shippingAddress": "آدرس ارسال",
+    "items": "اقلام",
+    "pending": "در انتظار تایید",
+    "confirmed": "تایید شده",
+    "shipped": "ارسال شد",
+    "delivered": "تحویل شد",
+    "cancelled": "لغو شد",
+    "stockShortage": "متاسفانه موجودی {name} کافی نیست.\nموجودی فعلی: {current} عدد\nتعداد درخواستی: {requested} عدد",
+    "unknown": "محصول"
+  },
+  "returns": {
+    "title": "مرجوعی‌ها",
+    "reason": "دلیل مرجوعی",
+    "refundAmount": "مبلغ بازپرداخت",
+    "requestReturn": "درخواست مرجوعی",
+    "requested": "درخواست ثبت شد",
+    "approved": "تایید شد",
+    "rejected": "رد شد",
+    "completed": "تکمیل شد"
+  },
+  "admin": {
+    "unauthorizedReturns": "دسترسی غیرمجاز: برای مشاهدهٔ مرجوعی‌ها وارد حساب ادمین شوید.",
+    "adminLogin": "ورود ادمین",
+    "accountDisabled": "این حساب غیرفعال شده است"
+  },
+  "profile": {
+    "title": "پروفایل",
+    "personalInfo": "اطلاعات شخصی",
+    "addresses": "آدرس‌ها",
+    "security": "امنیت"
+  },
+  "address": {
+    "province": "استان",
+    "city": "شهر",
+    "street": "خیابان",
+    "postalCode": "کدپستی",
+    "phone": "تلفن"
+  },
+  "currency": {
+    "toman": "تومان"
+  }
+}

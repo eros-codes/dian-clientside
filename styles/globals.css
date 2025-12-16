@@ -1,0 +1,117 @@
+@import '@fontsource/vazirmatn/400.css';
+@import '@fontsource/vazirmatn/500.css';
+@import '@fontsource/vazirmatn/600.css';
+@import '@fontsource/vazirmatn/700.css';
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-vazirmatn), system-ui, -apple-system, sans-serif;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--page-background);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* RTL specific styles */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Persian/Farsi number styles */
+.persian-numbers {
+  font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+}
+
+/* Header / Footer variables (injected from layout.tsx) */
+.site-header {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.site-header .header-btn-primary {
+  background-color: var(--header-btn-bg);
+  color: var(--header-btn-color);
+}
+
+.site-footer {
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+}
+
+/* header nav items / active state */
+.site-header .nav-item {
+  color: inherit;
+  transition: background-color .15s, color .15s;
+}
+.site-header .nav-item:hover {
+  background-color: var(--header-hover-bg);
+}
+.site-header .nav-item.active {
+  background-color: var(--header-active-bg);
+  color: var(--header-text);
+  font-weight: 600;
+}
+
+/* small badge (cart count) */
+.site-header .header-badge {
+  background-color: var(--header-btn-bg);
+  color: var(--header-btn-color);
+}
+
+/* avatar fallback color */
+.site-header .avatar-fallback {
+  background-color: var(--avatar-bg);
+  color: var(--avatar-text);
+}
+
+/* outline button hover fallback for header */
+.site-header .header-outline:hover {
+  border-color: var(--header-btn-bg);
+  color: var(--header-btn-bg);
+}
+
+/* header primary button hover */
+.site-header .header-btn-primary:hover {
+  background-color: var(--header-btn-bg);
+  filter: brightness(0.93);
+}
+
+/* header-specific inputs and icon buttons */
+.site-header .search-input {
+  background-color: var(--header-search-bg);
+  transition: background-color .12s, box-shadow .12s;
+}
+.site-header .search-input:focus,
+.site-header .search-input:hover {
+  background-color: var(--header-hover-bg);
+}
+.site-header .icon-btn {
+  transition: background-color .12s, color .12s, border-color .12s;
+}
+.site-header .icon-btn:hover {
+  background-color: var(--header-hover-bg);
+}
+.site-header .avatar-btn:hover {
+  background-color: var(--header-hover-bg);
+}

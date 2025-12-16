@@ -1,0 +1,229 @@
+/* stylelint-disable at-rule-no-unknown, unknown-at-rule */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable at-rule-no-unknown, unknown-at-rule */
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 214 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --section-gap: 24px;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  /* stylelint-disable at-rule-no-unknown */
+  * {
+    @apply border-border;
+  }
+  /* stylelint-enable at-rule-no-unknown */
+  /* stylelint-disable at-rule-no-unknown */
+  body {
+    /* prefer centralized tokens so client-colors.ts / layout.tsx wins */
+    /* RESTORED: removed temporary hotpink test so CSS variables can apply */
+    background: var(--page-background);
+    color: var(--foreground);
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    font-family: 'Vazirmatn', sans-serif;
+  }
+  /* stylelint-enable at-rule-no-unknown */
+  html {
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+  }
+  .direction-rtl {
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+/* Ensure the top-level app container uses the page background variable with high specificity
+   This helps override dev/runtime injected styles (e.g. Next dev overlays) that set body/html
+   background to white. It's intentionally specific and uses !important as a low-risk fallback. */
+html, body, #__next {
+  background-color: var(--page-background) !important;
+}
+
+.font-vazirmatn {
+  font-family: 'Vazirmatn', sans-serif;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 100px !important;
+  width: 100px !important;
+  height: 100px !important;
+}
+
+@media (max-width: 640px) {
+  .swiper-button-next::after,
+  .swiper-button-prev::after {
+    font-size: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* GLOBAL INPUT STYLES: ensure native inputs, textarea, selects and common MUI classes
+   follow the centralized tokens in client-side/client-colors.ts. These rules use
+   CSS variables (e.g. --input-bg, --input-text) and include !important where
+   necessary to override third-party defaults.
+*/
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+textarea,
+select,
+.MuiInputBase-input,
+.MuiInputBase-root input {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  caret-color: var(--input-text) !important;
+  -webkit-text-fill-color: var(--input-text) !important;
+  /* show a thin border by default */
+  border: 1.5px solid var(--input-border) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder) !important;
+  opacity: 1 !important; /* ensure visible */
+}
+
+.input:focus,
+textarea:focus,
+select:focus,
+.MuiInputBase-root.Mui-focused,
+.MuiOutlinedInput-root.Mui-focused {
+  /* ultra-thin, minimal focus ring */
+  outline: 1px solid var(--ring) !important;
+  outline-offset: 1px !important;
+  box-shadow: none !important;
+  /* keep a very thin default border for stability */
+  border: 1.5px solid var(--input-border) !important;
+}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border: 1.5px solid var(--input-border) !important;
+  box-shadow: none !important;
+  border-radius: 8px !important; /* preserve radius on focus */
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 1px solid var(--ring) !important;
+  outline-offset: 1px !important;
+}
+
+/* MUI OutlinedInput specific selectors */
+.MuiOutlinedInput-root {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+}
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  /* default: restore the thin outline border so inputs look bordered by default */
+  border: 1.5px solid var(--input-border) !important;
+  border-radius: 8px !important; /* keep rounded corners */
+}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  /* keep a subtle outline to avoid layout shift while focus ring is applied */
+  border: 1.5px solid var(--input-border) !important;
+  box-shadow: none !important;
+  border-radius: 8px !important; /* preserve radius on focus */
+}
+
+/* Make sure the root container keeps rounded corners even if some vendor CSS sets it */
+.MuiOutlinedInput-root {
+  border-radius: 8px !important;
+  overflow: hidden; /* avoid visual bleeding at corners */
+}
+
+/* header badge (order/cart count) - use centralized badge tokens */
+.header-badge {
+  background-color: var(--badge-bg) !important;
+  color: var(--badge-foreground) !important;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.MuiInputLabel-root {
+  color: var(--input-text) !important;
+}
+.MuiFormHelperText-root {
+  color: var(--input-placeholder) !important;
+}
+
+/* Accessible focus for links and interactive elements */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--ring) !important;
+  outline-offset: 2px !important;
+}
+
+/* Subtle global link hover for better affordance (no palette change) */
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+

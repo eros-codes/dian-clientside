@@ -1,0 +1,28 @@
+
+> nextjs@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.4
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 35.4s
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/[locale]/auth/login". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at g (C:\Users\LOQ\WebProjects\Cafe\client-side\.next\server\chunks\49.js:1:177728)
+    at m (C:\Users\LOQ\WebProjects\Cafe\client-side\.next\server\chunks\49.js:61:34211)
+    at s (C:\Users\LOQ\WebProjects\Cafe\client-side\.next\server\chunks\474.js:5:2391)
+    at n3 (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:82831)
+    at n6 (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:84601)
+    at n5 (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:104801)
+    at n7 (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:102219)
+    at ia (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:108211)
+    at n6 (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:97035)
+    at n5 (C:\Users\LOQ\WebProjects\Cafe\client-side\node_modules\next\dist\compiled\next-server\app-page.runtime.prod.js:2:104801)
+Error occurred prerendering page "/fa/auth/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /[locale]/auth/login/page: /fa/auth/login, exiting the build.
+ ⨯ Next.js build worker exited with code: 1 and signal: null

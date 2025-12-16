@@ -1,0 +1,141 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "search": "Search",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "navigation": {
+    "home": "Home",
+    "products": "Products",
+    "orders": "Orders",
+    "returns": "Returns",
+    "profile": "Profile",
+    "cart": "Cart",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "Header": "Header",
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot password",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "sendingVerification": "Sending verification..."
+  },
+  "products": {
+    "title": "Products",
+    "category": "Category",
+    "brand": "Brand",
+    "price": "Price",
+    "addToCart": "Add to cart",
+    "outOfStock": "Out of stock",
+    "inStock": "In stock",
+    "description": "Description",
+    "specifications": "Specifications",
+    "reviews": "Reviews",
+    "moreDetails": "More details",
+    "tableSessionRequired": "Please scan the table QR code to start ordering.",
+    "unavailableMessage": "This product is currently unavailable.",
+    "options": {
+      "dialogTitle": "Customize add-ons",
+      "instructions": "You can choose multiple add-ons.",
+      "priceSuffix": "extra",
+      "configureLabel": "Choose add-ons",
+      "configurePrimary": "Select add-ons & add",
+      "editSelection": "Edit add-ons",
+      "selectionSummary": "Selected add-ons",
+      "selectedBadge": "Selected",
+      "allUnavailable": "All add-ons for this product are currently disabled.",
+      "noneSelected": "No add-ons selected.",
+      "unavailable": "Unavailable",
+      "emptyState": "No add-ons are currently available for this product.",
+      "totalLabel": "Total extras",
+      "confirmLabel": "Add to cart"
+    }
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty.",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "totalPrice": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove"
+  },
+  "checkout": {
+    "reviewHeading": "Review your order",
+    "summaryHeading": "Order summary",
+    "itemsSubtotal": "Items subtotal",
+    "serviceFee": "Service fee",
+    "taxLabel": "Tax ({rate})",
+    "discountLabel": "Discount ({rate})",
+    "totalLabel": "Grand total",
+    "itemQuantity": "Qty: {quantity}",
+    "itemQuantityCompact": "× {quantity}",
+    "withAddOns": "with {options}"
+  },
+  "orders": {
+    "title": "Orders",
+    "orderNumber": "Order number",
+    "orderDate": "Order date",
+    "totalAmount": "Total amount",
+    "status": "Status",
+    "shippingAddress": "Shipping address",
+    "items": "Items",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled",
+    "stockShortage": "Insufficient stock for {name}.\nAvailable: {current}\nRequested: {requested}",
+    "unknown": "Product"
+  },
+  "returns": {
+    "title": "Returns",
+    "reason": "Reason",
+    "refundAmount": "Refund amount",
+    "requestReturn": "Request return",
+    "requested": "Requested",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "completed": "Completed"
+  },
+  "admin": {
+    "unauthorizedReturns": "Unauthorized: to view returns, please sign in as an admin.",
+    "adminLogin": "Admin login",
+    "accountDisabled": "This account has been disabled"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal information",
+    "addresses": "Addresses",
+    "security": "Security"
+  },
+  "address": {
+    "province": "Province",
+    "city": "City",
+    "street": "Street",
+    "postalCode": "Postal code",
+    "phone": "Phone"
+  },
+  "currency": {
+    "toman": "Toman"
+  }
+}
