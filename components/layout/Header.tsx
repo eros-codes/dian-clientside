@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import { debounce } from '@/lib/utils';
 import colors from '@/client-colors';
 import { useCurrentTable } from '@/hooks/useCurrentTable';
-import logoImage from '@/logo/logo.png';
+// logo moved to public/logo/logo.png — reference via public URL
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import {
   Coffee,
   UtensilsCrossed,
 } from 'lucide-react';
+
 
 import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
@@ -98,6 +99,8 @@ export function Header() {
     return /^\d+$/.test(trimmed) ? `میز شماره ${trimmed}` : trimmed;
   }, [tableNumber]);
 
+  const logoSrc = '/logo/logo.png';
+
   if (!isMounted) {
     return (
       <header className="w-full site-header">
@@ -157,10 +160,10 @@ export function Header() {
                         style={{ backgroundColor: 'var(--header-btn-bg)', width: 48, height: 48 }}
                       >
                         <Image
-                          src={logoImage}
+                          src={logoSrc}
                           alt="DIAN logo"
-                          width={logoImage.width}
-                          height={logoImage.height}
+                          width={36}
+                          height={36}
                           style={{ objectFit: 'contain', width: 36, height: 36 }}
                           priority
                         />
@@ -230,10 +233,10 @@ export function Header() {
                 style={{ backgroundColor: 'var(--header-btn-bg)', width: 56, height: 56 }}
               >
                 <Image
-                  src={logoImage}
+                  src={logoSrc}
                   alt="DIAN logo"
-                  width={logoImage.width}
-                  height={logoImage.height}
+                  width={40}
+                  height={40}
                   style={{ objectFit: 'contain', width: 40, height: 40 }}
                   priority
                 />
