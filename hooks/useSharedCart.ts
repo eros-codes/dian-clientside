@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useCartStore } from '@/stores/cartStore';
 import { SelectedOption } from '@/types';
 
@@ -27,9 +27,12 @@ export interface SharedCart {
  * Hook for managing shared table carts with real-time sync
  * میز کو share کرتے ہوئے real-time sync فراہم کرتا ہے
  */
+// Module-level singletons so Header can initialize once and other callers
+// get the same socket/tableId state.
+const socketRef: { current: any | null } = { current: null };
+const tableIdRef: { current: string | null } = { current: null };
+
   export const useSharedCart = (tableId?: string) => {
-    const socketRef = useRef<any>(null);
-    const tableIdRef = useRef<string | null>(null);
     const {
       setTableId,
       items,

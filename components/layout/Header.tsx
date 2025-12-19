@@ -55,8 +55,9 @@ export function Header() {
     }
   }, [sessionId, isSessionActive, setSessionId]);
   
-  // Activate shared cart only when there's an active session with valid sessionId
-  useSharedCart(isSessionActive && sessionId ? sessionId : undefined);
+  // Activate shared cart using the table identifier (server expects tableId)
+  // Keep sessionId stored for other uses (auth/header) but pass tableId to the hook.
+  useSharedCart(isSessionActive && tableId ? tableId : undefined);
 
   useEffect(() => {
     setIsMounted(true);
