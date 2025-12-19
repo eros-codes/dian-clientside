@@ -170,7 +170,25 @@ const tableIdRef: { current: string | null } = { current: null };
         socketRef.current.on('connect', () => {
           console.log('✅ WebSocket connected');
           // Use module-level tableIdRef in case tableId changed before connect
-          socketRef.current.emit('joinCart', { tableId: tableIdRef.current, userId: undefined });
+          try {
+            const payload = { tableId: tableIdRef.current, userId: undefined };
+            console.log('📣 Emitting joinCart', payload);
+            // include optional ack to log server response if supported
+            socketRef.current.emit('joinCart', payload, (ack: any) => {
+              console.log('📣 joinCart ack:', ack);
+            });
+          } catch (e) {
+            console.warn('❌ Failed to emit joinCart', e);
+          }
+        });
+        socketRef.current.on('connect_error', (err: any) => {
+          console.error('❌ Socket connect_error:', err);
+        });
+        socketRef.current.on('connect_timeout', (err: any) => {
+          console.error('❌ Socket connect_timeout:', err);
+        });
+        socketRef.current.on('reconnect_attempt', (n: number) => {
+          console.log('🔁 Socket reconnect attempt', n);
         });
 
         socketRef.current.on('cartSubscribed', (data: any) => {
