@@ -175,12 +175,16 @@ const tableIdRef: { current: string | null } = { current: null };
           console.log('✅ WebSocket connected');
           // Use module-level tableIdRef in case tableId changed before connect
           try {
+            const s = socketRef.current;
             const payload = { tableId: tableIdRef.current, userId: undefined };
             console.log('📣 Emitting joinCart', payload);
-            // include optional ack to log server response if supported
-            socketRef.current.emit('joinCart', payload, (ack: any) => {
-              console.log('📣 joinCart ack:', ack);
-            });
+            if (s && typeof s.emit === 'function') {
+              s.emit('joinCart', payload, (ack: any) => {
+                console.log('📣 joinCart ack:', ack);
+              });
+            } else {
+              console.warn('⚠️ Socket not available to emit joinCart');
+            }
           } catch (e) {
             console.warn('❌ Failed to emit joinCart', e);
           }
@@ -193,6 +197,22 @@ const tableIdRef: { current: string | null } = { current: null };
         });
         socketRef.current.on('reconnect_attempt', (n: number) => {
           console.log('🔁 Socket reconnect attempt', n);
+        });
+        // On full reconnect, re-join the cart room to ensure server sends missed updates
+        socketRef.current.on('reconnect', (n: number) => {
+          console.log('🔁 Socket reconnected', n);
+          try {
+            const s = socketRef.current;
+            const payload = { tableId: tableIdRef.current, userId: undefined };
+            if (s && typeof s.emit === 'function') {
+              console.log('📣 Re-emitting joinCart after reconnect', payload);
+              s.emit('joinCart', payload, (ack: any) => {
+                console.log('📣 joinCart ack after reconnect:', ack);
+              });
+            }
+          } catch (e) {
+            console.warn('❌ Failed to re-emit joinCart on reconnect', e);
+          }
         });
 
         socketRef.current.on('cartSubscribed', (data: any) => {

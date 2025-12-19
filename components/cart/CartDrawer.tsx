@@ -13,6 +13,8 @@ import {
 } from '@mui/material';
 import { Close, ShoppingCart, Info } from '@mui/icons-material';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useSharedCart } from '@/hooks/useSharedCart';
 import { useTranslations } from 'next-intl';
 import { Price } from '@/components/ui/Price';
 import { CartItem } from './CartItem';
@@ -23,6 +25,8 @@ export function CartDrawer() {
   const t = useTranslations();
   const { items, isOpen, closeCart, totalAmount, totalItems } = useCartStore();
   const { tableNumber } = useCurrentTable();
+  const router = useRouter();
+  const shared = useSharedCart();
 
   return (
     <Drawer
@@ -85,11 +89,19 @@ export function CartDrawer() {
                 مشاهده سبد
               </Button>
               <Button
-                component={Link}
-                href="/checkout"
                 variant="contained"
                 fullWidth
-                onClick={closeCart}
+                onClick={async () => {
+                  closeCart();
+                  try {
+                    if (shared && typeof shared.fetchCart === 'function') {
+                      await shared.fetchCart();
+                    }
+                  } catch (e) {
+                    console.warn('Failed to fetch shared cart before checkout', e);
+                  }
+                  router.push('/checkout');
+                }}
               >
                 {t('cart.checkout')}
               </Button>
