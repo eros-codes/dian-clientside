@@ -47,14 +47,12 @@ export const useSharedCart = (tableId?: string) => {
   useEffect(() => {
     if (!tableId) return;
 
+    console.log('🚀 Initializing socket connection for table:', tableId);
     setTableId(tableId);
 
     const initSocket = async () => {
-      if (typeof window === 'undefined') return;
-
       try {
         const { io } = await import('socket.io-client');
-
         const socketUrl = apiBaseUrl
           .replace(/\/api\/?$/, '')
           .replace(/\/$/, '');
@@ -68,36 +66,34 @@ export const useSharedCart = (tableId?: string) => {
         });
 
         socketRef.current.on('connect', () => {
-          console.log('🔗 Connected to cart server');
           socketRef.current.emit('joinCart', { tableId, userId: undefined });
         });
 
         socketRef.current.on('cartSubscribed', (data: any) => {
-          console.log('📊 Subscribed to cart:', data);
+          // Cart subscribed
         });
 
         socketRef.current.on('cartUpdated', (data: { cart: SharedCart }) => {
-          console.log('🔄 Cart updated from server:', data.cart);
           updateLocalStore(data.cart);
         });
 
         socketRef.current.on('userJoined', (data: any) => {
-          console.log('👥 User joined cart:', data);
+          // User joined cart
         });
 
         socketRef.current.on('userLeft', (data: any) => {
-          console.log('👥 User left cart:', data);
+          // User left cart
         });
 
         socketRef.current.on('error', (error: any) => {
-          console.error('❌ Socket error:', error);
+          console.error('Socket error:', error);
         });
 
         socketRef.current.on('disconnect', () => {
-          console.log('❌ Disconnected from cart server');
+          // Disconnected from cart server
         });
       } catch (error) {
-        console.error('Failed to initialize socket:', error);
+        // Failed to initialize socket
       }
     };
 
