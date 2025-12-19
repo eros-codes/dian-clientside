@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { productsApi } from '@/lib/api';
+import { readCurrentTable } from './useCurrentTable';
 import { useCartStore } from '@/stores/cartStore';
 import { SelectedOption } from '@/types';
 
@@ -211,7 +212,24 @@ const tableIdRef: { current: string | null } = { current: null };
   const waitForTableId = async (timeoutMs = 2000) => {
     const start = Date.now();
     while (!tableIdRef.current && Date.now() - start < timeoutMs) {
+      // Try reading from localStorage as a fallback (handles multiple bundles)
+      try {
+        const stored = readCurrentTable();
+        if (stored?.tableId) {
+          tableIdRef.current = stored.tableId;
+          break;
+        }
+      } catch (e) {
+        // ignore
+      }
       await new Promise((r) => setTimeout(r, 100));
+    }
+    // final attempt to read storage
+    if (!tableIdRef.current) {
+      try {
+        const stored = readCurrentTable();
+        if (stored?.tableId) tableIdRef.current = stored.tableId;
+      } catch {}
     }
     return tableIdRef.current;
   };
