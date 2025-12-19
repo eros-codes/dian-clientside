@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useCartStore } from '@/stores/cartStore';
+import { SelectedOption } from '@/types';
 
 export interface CartItem {
   id: string;
@@ -38,16 +39,44 @@ export const useSharedCart = (tableId?: string) => {
 
   // Helper to update local store from server cart
   const updateLocalStore = (cart: SharedCart) => {
-    if (cart.items.length === 0) {
-      storeClearCart();
-    }
+    console.log('🔄 Updating local store with server cart:', cart);
+    
+    // Clear local cart first
+    storeClearCart();
+    
+    // Add items from server cart to local store
+    cart.items.forEach(item => {
+      const { addItem: localAddItem } = useCartStore.getState();
+      // Convert server cart item to local cart item format
+      const localItem = {
+        id: item.id,
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        baseUnitPrice: item.baseUnitPrice,
+        optionsSubtotal: item.optionsSubtotal,
+        options: item.options,
+        product: {
+          id: item.productId,
+          name: '', // Will be filled by local store
+          price: item.unitPrice,
+          images: [],
+        } as any,
+      };
+      // Convert Record<string, any>[] to SelectedOption[]
+      const selectedOptions: SelectedOption[] = (item.options ?? []).map((opt: Record<string, any>) => ({
+        id: opt.id,
+        name: opt.name,
+        additionalPrice: opt.additionalPrice || 0,
+      }));
+      localAddItem(localItem.product, localItem.quantity, selectedOptions);
+    });
   };
 
   // Initialize WebSocket connection
   useEffect(() => {
     if (!tableId) return;
 
-    console.log('🚀 Initializing socket connection for table:', tableId);
     setTableId(tableId);
 
     const initSocket = async () => {
@@ -107,6 +136,27 @@ export const useSharedCart = (tableId?: string) => {
       }
     };
   }, [tableId, setTableId]);
+
+  // Fetch initial cart data
+  useEffect(() => {
+    if (!tableId) return;
+    
+    const fetchInitialCart = async () => {
+      try {
+        const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
+        const response = await fetch(url);
+
+        if (response.ok) {
+          const data = (await response.json()) as SharedCart;
+          updateLocalStore(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch initial cart:', error);
+      }
+    };
+
+    fetchInitialCart();
+  }, [tableId, apiBaseUrl]);
 
   // Add item to shared cart
   const addItem = async (
