@@ -30,6 +30,7 @@ import { ProductDetailSkeleton } from "@/components/ui/ProductDetailSkeleton";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useProduct } from "@/hooks/useApi";
 import { useCartStore } from "@/stores/cartStore";
+import { useSyncedCart } from "@/hooks/useSyncedCart";
 import type { SelectedOption } from "@/types";
 import { ProductOptionsModal } from "@/components/product/ProductOptionsModal";
 import { useCurrentTable } from "@/hooks/useCurrentTable";
@@ -90,7 +91,7 @@ export function ProductDetailContent({
   const swiperRef = useRef<SwiperType | null>(null);
 
   const { data: product, isLoading, error } = useProduct(productId);
-  const { addItem } = useCartStore();
+  const syncedCart = useSyncedCart();
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
   const { isSessionActive, tableNumber } = useCurrentTable();
@@ -144,7 +145,7 @@ export function ProductDetailContent({
       return;
     }
 
-    addItem(product, quantity, options);
+    syncedCart.addItem(product, quantity, options);
     setIsOptionsOpen(false);
     setCartAnim(true);
     setTimeout(() => setCartAnim(false), 320);

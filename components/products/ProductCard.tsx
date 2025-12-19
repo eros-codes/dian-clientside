@@ -22,6 +22,7 @@ import { Price } from '@/components/ui/Price';
 import { toPersianDigits } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
 import { useSharedCart } from '@/hooks/useSharedCart';
+import { useSyncedCart } from '@/hooks/useSyncedCart';
 import { useCartHydration } from '@/hooks/useCartHydration';
 import ClientOnly from '@/components/ui/ClientOnly';
 import { truncateText } from '@/lib/utils';
@@ -47,16 +48,15 @@ export function ProductCard({ product }: ProductCardProps) {
   console.log('🔥 ProductCard LOADED for:', product.name);
   
   const t = useTranslations();
-  const { addItem, items } = useCartStore();
-  const { addItem: addSharedItem } = useSharedCart();
+  const syncedCart = useSyncedCart();
   const isHydrated = useCartHydration();
   const [cartAnim, setCartAnim] = React.useState(false);
   const [orderCount, setOrderCount] = React.useState(5); // TEMP: Fixed test value
 
   // Get current item count from cart
-  const currentItemCount = items.find(item => item.productId === product.id)?.quantity || 0;
+  const currentItemCount = syncedCart.items.find(item => item.productId === product.id)?.quantity || 0;
 
-  console.log('🛒 Cart items:', items.length, 'Current count for', product.name, '=', currentItemCount);
+  console.log('🛒 Cart items:', syncedCart.items.length, 'Current count for', product.name, '=', currentItemCount);
 
   // Update local count when cart changes
   React.useEffect(() => {
@@ -75,8 +75,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (addDisabled) return;
-    addItem(product);
-    addSharedItem(product.id, 1, Number(product.price), Number(product.price));
+    syncedCart.addItem(product);
     setCartAnim(true);
     setTimeout(() => setCartAnim(false), 320);
   };

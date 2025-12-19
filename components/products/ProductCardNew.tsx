@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { Box, Dialog, DialogContent, useTheme, useMediaQuery } from '@mui/material';
 import { Product, SelectedOption } from '@/types';
 import { useCartStore } from '@/stores/cartStore';
+import { useSyncedCart } from '@/hooks/useSyncedCart';
 import { useCartHydration } from '@/hooks/useCartHydration';
 import { useCurrentTable } from '@/hooks/useCurrentTable';
 import ConceptProductCard from '../product/ConceptProductCard';
@@ -28,7 +29,7 @@ function resolveImageUrl(img: string | { url: string }): string | undefined {
 }
 
 export function ProductCardNew({ product, hasTableSession = true }: ProductCardNewProps) {
-  const { addItem } = useCartStore();
+  const syncedCart = useSyncedCart();
   const isHydrated = useCartHydration();
   const { isSessionActive, tableNumber } = useCurrentTable();
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -64,7 +65,7 @@ export function ProductCardNew({ product, hasTableSession = true }: ProductCardN
       return;
     }
 
-    addItem(product, 1);
+    syncedCart.addItem(product, 1);
     toast.success(`${product.name} به سبد خرید افزوده شد`);
   };
 
@@ -78,7 +79,7 @@ export function ProductCardNew({ product, hasTableSession = true }: ProductCardN
 
   const handleConfirmOptions = (selected: SelectedOption[]) => {
     if (!isHydrated || !isSessionActive || !isProductAvailable) return;
-    addItem(product, pendingQuantity, selected);
+    syncedCart.addItem(product, pendingQuantity, selected);
     setIsOptionsOpen(false);
     toast.success(`${product.name} به سبد خرید افزوده شد`);
   };

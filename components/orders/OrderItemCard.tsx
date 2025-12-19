@@ -17,6 +17,8 @@ import { OrderItem, SelectedOption } from '@/types';
 import { Price } from '@/components/ui/Price';
 import { toPersianDigits } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
+import { useSyncedCart } from '@/hooks/useSyncedCart';
+import { useCurrentTable } from '@/hooks/useCurrentTable';
 import { useRouter } from 'next/navigation';
 
 // 🔹 گرادیانت ثابت
@@ -92,7 +94,8 @@ export function OrderItemCard({ item, showReorderButton = false }: OrderItemCard
       ? item.totalPrice
       : (item.unitPrice || 0) * (item.quantity || 0);
 
-  const { addItem } = useCartStore();
+  const syncedCart = useSyncedCart();
+  const { isSessionActive } = useCurrentTable();
   const router = useRouter();
 
   const handleReorder = () => {
@@ -105,7 +108,7 @@ export function OrderItemCard({ item, showReorderButton = false }: OrderItemCard
       additionalPrice: Number(opt.additionalPrice) || 0,
     }));
 
-    addItem(item.product, item.quantity, normalizedOptions);
+    syncedCart.addItem(item.product, item.quantity, normalizedOptions);
     
     // رفتن به صفحه سبد خرید
     router.push('/cart');
