@@ -54,14 +54,10 @@ export interface SharedCart {
     const currentState = useCartStore.getState();
     const existingItemCount = currentState.items.length;
     
-    // If server returns empty cart but we have items, only update if this is a deliberate clear (from another device)
-    // Otherwise, preserve local items to avoid accidental loss on network hiccups
-    if (cart.items.length === 0 && existingItemCount > 0) {
-      console.log('📭 Server cart is empty but local has items. Skipping to preserve local state.');
-      return;
-    }
+    // Always sync with server state — if server has 0 items, clear local
+    // (This ensures consistency across devices)
+    console.log(`📊 Server: ${cart.items.length} items, Local: ${existingItemCount} items`);
     
-    // Clear and rebuild from server
     storeClearCart();
     
     cart.items.forEach(item => {
@@ -76,7 +72,7 @@ export interface SharedCart {
       addItem(product, item.quantity || 1, options);
     });
     
-    console.log('✅ Local store updated. Now has', useCartStore.getState().items.length, 'items');
+    console.log('✅ Local store synced. Now has', useCartStore.getState().items.length, 'items');
   };
 
   // Initialize WebSocket connection
