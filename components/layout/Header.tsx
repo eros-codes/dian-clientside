@@ -48,8 +48,8 @@ export function Header() {
   const hasTableSession = !!(sessionId && sessionId.trim().length);
   const { menuType, setMenuType } = useMenuStore();
   
-  // Activate shared cart when table session exists
-  useSharedCart(hasTableSession && tableId ? tableId : undefined);
+  // Activate shared cart when table session exists (use sessionId, not tableId)
+  useSharedCart(hasTableSession ? sessionId : undefined);
 
   useEffect(() => {
     setIsMounted(true);

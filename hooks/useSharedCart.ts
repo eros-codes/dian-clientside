@@ -60,19 +60,50 @@ export interface SharedCart {
     
     storeClearCart();
     
-    cart.items.forEach(item => {
-      if (!item?.productId) return;
+    cart.items.forEach(serverItem => {
+      if (!serverItem?.productId) return;
       
       const { addItem } = useCartStore.getState();
-      const product = { id: item.productId, name: '', price: item.unitPrice || 0, images: [] } as any;
-      const options = Array.isArray(item.options) ? item.options.map(opt => ({
-        id: opt?.id, name: opt?.name || '', additionalPrice: Number(opt?.additionalPrice) || 0
-      })) : [];
+      const product = { 
+        id: serverItem.productId, 
+        name: '', 
+        price: serverItem.unitPrice || 0, 
+        images: [] 
+      } as any;
       
-      addItem(product, item.quantity || 1, options);
+      // Use the server-generated item ID to maintain consistency
+      // addItem will create the same ID locally as on server
+      const localItem = {
+        id: serverItem.id, // Use server ID directly
+        productId: serverItem.productId,
+        product,
+        quantity: serverItem.quantity || 1,
+        unitPrice: serverItem.unitPrice,
+        baseUnitPrice: serverItem.baseUnitPrice,
+        options: Array.isArray(serverItem.options) ? serverItem.options : [],
+        optionsSubtotal: serverItem.optionsSubtotal || 0,
+      };
+      
+      // Directly update store state instead of going through addItem
+      // to preserve the server-generated IDs
+      useCartStore.setState((state) => {
+        const newItems = [...state.items, localItem as any];
+        const { totalItems, totalAmount } = calculateTotals(newItems);
+        return { items: newItems, totalItems, totalAmount };
+      });
     });
     
     console.log('✅ Local store synced. Now has', useCartStore.getState().items.length, 'items');
+  };
+
+  // Helper function to calculate totals (same as in cartStore)
+  const calculateTotals = (items: any[]) => {
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalAmount = items.reduce(
+      (sum, item) => sum + item.unitPrice * item.quantity,
+      0
+    );
+    return { totalItems, totalAmount };
   };
 
   // Initialize WebSocket connection
@@ -170,46 +201,12 @@ export interface SharedCart {
     fetchInitialCart();
   }, [tableId, apiBaseUrl]);
 
-  // Sync local items with server when items change locally
-  useEffect(() => {
-    if (!tableId) return;
-
-    const syncLocalItemsWithServer = async () => {
-      try {
-        // Get current server state
-        const response = await fetch(`${apiBaseUrl}/api/shared-carts/${tableId}`);
-        if (!response.ok) return;
-        
-        const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
-        const serverCart = 'data' in json ? json.data : json;
-        const serverItemIds = new Set(serverCart.items.map(si => si.id));
-
-        // Find new items (items in local store that aren't on server)
-        for (const localItem of items) {
-          if (!serverItemIds.has(localItem.id)) {
-            console.log('⬆️ Pushing new item to server:', localItem.productId);
-            await addItem(
-              localItem.productId,
-              localItem.quantity,
-              localItem.unitPrice,
-              localItem.baseUnitPrice,
-              localItem.optionsSubtotal,
-              localItem.options
-            );
-          }
-        }
-      } catch (error) {
-        console.error('❌ Failed to sync local items with server:', error);
-      }
-    };
-
-    // Debounce the sync to avoid too many requests
-    const timer = setTimeout(() => {
-      syncLocalItemsWithServer();
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [items, tableId, apiBaseUrl]);
+  // TODO: Sync local items with server when items change locally
+  // Commented out for now as it causes duplicates - items should be added directly via addItem
+  // useEffect(() => {
+  //   if (!tableId) return;
+  //   ...
+  // }, [items, tableId, apiBaseUrl]);
 
   // Add item to shared cart
   const addItem = async (
