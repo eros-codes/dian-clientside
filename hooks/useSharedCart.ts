@@ -34,7 +34,7 @@ export const useSharedCart = (tableId?: string) => {
     clearCart: storeClearCart,
   } = useCartStore();
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
   // Helper to update local store from server cart
   const updateLocalStore = (cart: SharedCart) => {
