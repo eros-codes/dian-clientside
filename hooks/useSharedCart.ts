@@ -27,49 +27,35 @@ export interface SharedCart {
  * Hook for managing shared table carts with real-time sync
  * میز کو share کرتے ہوئے real-time sync فراہم کرتا ہے
  */
-export const useSharedCart = (tableId?: string) => {
-  const socketRef = useRef<any>(null);
-  const {
-    setTableId,
-    items,
-    clearCart: storeClearCart,
-  } = useCartStore();
+  export const useSharedCart = (tableId?: string) => {
+    const socketRef = useRef<any>(null);
+    const {
+      setTableId,
+      items,
+      clearCart: storeClearCart,
+    } = useCartStore();
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
-  // Helper to update local store from server cart
-  const updateLocalStore = (cart: SharedCart) => {
-    console.log('🔄 Updating local store with server cart:', cart);
+    // Helper to update local store from server cart
+    const updateLocalStore = (cart: SharedCart) => {
+    if (!cart || !Array.isArray(cart.items)) {
+      console.error('Invalid cart:', cart);
+      return;
+    }
     
-    // Clear local cart first
     storeClearCart();
     
-    // Add items from server cart to local store
     cart.items.forEach(item => {
-      const { addItem: localAddItem } = useCartStore.getState();
-      // Convert server cart item to local cart item format
-      const localItem = {
-        id: item.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        baseUnitPrice: item.baseUnitPrice,
-        optionsSubtotal: item.optionsSubtotal,
-        options: item.options,
-        product: {
-          id: item.productId,
-          name: '', // Will be filled by local store
-          price: item.unitPrice,
-          images: [],
-        } as any,
-      };
-      // Convert Record<string, any>[] to SelectedOption[]
-      const selectedOptions: SelectedOption[] = (item.options ?? []).map((opt: Record<string, any>) => ({
-        id: opt.id,
-        name: opt.name,
-        additionalPrice: opt.additionalPrice || 0,
-      }));
-      localAddItem(localItem.product, localItem.quantity, selectedOptions);
+      if (!item?.productId) return;
+      
+      const { addItem } = useCartStore.getState();
+      const product = { id: item.productId, name: '', price: item.unitPrice || 0, images: [] } as any;
+      const options = Array.isArray(item.options) ? item.options.map(opt => ({
+        id: opt?.id, name: opt?.name || '', additionalPrice: Number(opt?.additionalPrice) || 0
+      })) : [];
+      
+      addItem(product, item.quantity || 1, options);
     });
   };
 
