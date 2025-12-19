@@ -133,17 +133,24 @@ const tableIdRef: { current: string | null } = { current: null };
     return { totalItems, totalAmount };
   };
 
-  // Initialize WebSocket connection
+  // Initialize WebSocket connection. Use provided tableId, or fallback to module ref or localStorage.
   useEffect(() => {
-    if (!tableId) {
+    const effectiveTableId = tableId || tableIdRef.current || readCurrentTable()?.tableId || null;
+    if (!effectiveTableId) {
       console.log('⏭️ No tableId, skipping WebSocket init');
       return;
     }
 
+    // If socket already exists for same tableId, skip re-init
+    if (socketRef.current && tableIdRef.current === effectiveTableId) {
+      // already initialized
+      return;
+    }
+
     // Store tableId in ref so it's always available in closures
-    tableIdRef.current = tableId;
-    console.log('🚀 Initializing shared cart for table:', tableId);
-    setTableId(tableId);
+    tableIdRef.current = effectiveTableId;
+    console.log('🚀 Initializing shared cart for table:', effectiveTableId);
+    setTableId(effectiveTableId);
 
     const initSocket = async () => {
       try {
@@ -200,11 +207,14 @@ const tableIdRef: { current: string | null } = { current: null };
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.emit('leaveCart', { tableId });
+        try {
+          socketRef.current.emit('leaveCart', { tableId: tableIdRef.current });
+        } catch {}
         socketRef.current.disconnect();
         socketRef.current = null;
       }
     };
+  // run when provided tableId changes or on mount
   }, [tableId, setTableId]);
 
   // Fetch initial cart data
