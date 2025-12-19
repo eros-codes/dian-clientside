@@ -14,10 +14,7 @@ import '@fontsource/vazirmatn/700.css';
 export const metadata: Metadata = {
   title: 'Dian Cafe',
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/logo/logo.png', type: 'image/png' },
-    ],
+    icon: '/logo/logo.PNG',
   },
 };
 

@@ -103,7 +103,7 @@ export function Header() {
     return /^\d+$/.test(trimmed) ? `میز شماره ${trimmed}` : trimmed;
   }, [tableNumber]);
 
-  const logoSrc = '/logo/logo.png';
+  const logoSrc = '/logo/logo.PNG';
 
   if (!isMounted) {
     return (
