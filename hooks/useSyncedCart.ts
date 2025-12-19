@@ -8,13 +8,17 @@ import { Product, SelectedOption } from '@/types';
 /**
  * Hook that syncs cart operations to both local store and server
  * اضافه کردن, حذف, و آپدیت تعداد را هم محلی و هم سرور sync می‌کند
+ * 
+ * NOTE: useSharedCart() should be called ONCE in Header component
+ * This hook uses the singleton instance created there
  */
 export function useSyncedCart() {
   const cartStore = useCartStore();
+  const sharedCart = useSharedCart(); // Get the singleton instance initialized in Header
   const { isSessionActive, tableId } = useCurrentTable();
-  
-  // Pass tableId directly to useSharedCart so it initializes properly
-  const sharedCart = useSharedCart(tableId || undefined);
+
+  // Defensive check: if sharedCart is not properly initialized
+  const hasSharedCart = sharedCart && typeof sharedCart.addItem === 'function';
 
   const addItem = async (
     product: Product,
@@ -24,8 +28,8 @@ export function useSyncedCart() {
     // Always add to local store first
     cartStore.addItem(product, quantity, options);
 
-    // If there's an active session, also sync to server
-    if (isSessionActive && tableId) {
+    // If there's an active session AND sharedCart is available, sync to server
+    if (isSessionActive && tableId && hasSharedCart) {
       try {
         await sharedCart.addItem(
           product.id,
@@ -38,6 +42,7 @@ export function useSyncedCart() {
         console.log('✅ Item synced to server:', product.id);
       } catch (error) {
         console.error('❌ Failed to sync item to server:', error);
+        // Don't rethrow - let local update persist
       }
     }
   };
@@ -45,7 +50,7 @@ export function useSyncedCart() {
   const removeItem = async (itemId: string) => {
     cartStore.removeItem(itemId);
 
-    if (isSessionActive && tableId) {
+    if (isSessionActive && tableId && hasSharedCart) {
       try {
         await sharedCart.removeItem(itemId);
         console.log('✅ Item removed from server:', itemId);
@@ -58,7 +63,7 @@ export function useSyncedCart() {
   const updateQuantity = async (itemId: string, quantity: number) => {
     cartStore.updateQuantity(itemId, quantity);
 
-    if (isSessionActive && tableId) {
+    if (isSessionActive && tableId && hasSharedCart) {
       try {
         await sharedCart.updateQuantity(itemId, quantity);
         console.log('✅ Quantity synced to server:', itemId, quantity);

@@ -222,7 +222,10 @@ export interface SharedCart {
     options?: Record<string, any>[] | null,
   ) => {
     const currentTableId = tableIdRef.current;
-    if (!currentTableId) throw new Error('Table ID not set');
+    if (!currentTableId) {
+      console.warn('⚠️ No table session, skipping server sync. Item added locally only.');
+      return null; // Return null instead of throwing
+    }
 
     try {
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items`;
@@ -252,10 +255,14 @@ export interface SharedCart {
 
   // Update item quantity
   const updateQuantity = async (itemId: string, quantity: number) => {
-    if (!tableId) throw new Error('Table ID not set');
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) {
+      console.warn('⚠️ No table session, skipping server sync. Quantity updated locally only.');
+      return null;
+    }
 
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${tableIdRef.current}/items/${itemId}`;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -276,7 +283,10 @@ export interface SharedCart {
   // Remove item
   const removeItemAsync = async (itemId: string) => {
     const currentTableId = tableIdRef.current;
-    if (!currentTableId) throw new Error('Table ID not set');
+    if (!currentTableId) {
+      console.warn('⚠️ No table session, skipping server sync. Item removed locally only.');
+      return null;
+    }
 
     try {
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
@@ -296,7 +306,10 @@ export interface SharedCart {
   // Get current cart
   const fetchCart = async () => {
     const currentTableId = tableIdRef.current;
-    if (!currentTableId) throw new Error('Table ID not set');
+    if (!currentTableId) {
+      console.warn('⚠️ No table session, cannot fetch from server.');
+      return null;
+    }
 
     try {
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
@@ -316,7 +329,10 @@ export interface SharedCart {
   // Clear cart
   const clearCartAsync = async () => {
     const currentTableId = tableIdRef.current;
-    if (!currentTableId) throw new Error('Table ID not set');
+    if (!currentTableId) {
+      console.warn('⚠️ No table session, cannot clear from server.');
+      return null;
+    }
 
     try {
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
