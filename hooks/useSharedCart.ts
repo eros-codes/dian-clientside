@@ -209,7 +209,7 @@ export interface SharedCart {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [items, tableId, apiBaseUrl, addItem]);
+  }, [items, tableId, apiBaseUrl]);
 
   // Add item to shared cart
   const addItem = async (
