@@ -39,11 +39,29 @@ export interface SharedCart {
 
     // Helper to update local store from server cart
     const updateLocalStore = (cart: SharedCart) => {
-    if (!cart || !Array.isArray(cart.items)) {
-      console.error('Invalid cart:', cart);
+    if (!cart) {
+      console.warn('⚠️ Cart is null or undefined, skipping update');
       return;
     }
     
+    if (!Array.isArray(cart.items)) {
+      console.error('❌ Invalid cart structure - items is not an array:', cart);
+      return;
+    }
+
+    console.log('🔄 Updating local store with server cart. Items:', cart.items.length);
+    
+    const currentState = useCartStore.getState();
+    const existingItemCount = currentState.items.length;
+    
+    // If server returns empty cart but we have items, only update if this is a deliberate clear (from another device)
+    // Otherwise, preserve local items to avoid accidental loss on network hiccups
+    if (cart.items.length === 0 && existingItemCount > 0) {
+      console.log('📭 Server cart is empty but local has items. Skipping to preserve local state.');
+      return;
+    }
+    
+    // Clear and rebuild from server
     storeClearCart();
     
     cart.items.forEach(item => {
@@ -57,12 +75,18 @@ export interface SharedCart {
       
       addItem(product, item.quantity || 1, options);
     });
+    
+    console.log('✅ Local store updated. Now has', useCartStore.getState().items.length, 'items');
   };
 
   // Initialize WebSocket connection
   useEffect(() => {
-    if (!tableId) return;
+    if (!tableId) {
+      console.log('⏭️ No tableId, skipping WebSocket init');
+      return;
+    }
 
+    console.log('🚀 Initializing shared cart for table:', tableId);
     setTableId(tableId);
 
     const initSocket = async () => {
@@ -81,34 +105,36 @@ export interface SharedCart {
         });
 
         socketRef.current.on('connect', () => {
+          console.log('✅ WebSocket connected');
           socketRef.current.emit('joinCart', { tableId, userId: undefined });
         });
 
         socketRef.current.on('cartSubscribed', (data: any) => {
-          // Cart subscribed
+          console.log('📡 Cart subscribed:', data);
         });
 
         socketRef.current.on('cartUpdated', (data: { cart: SharedCart }) => {
+          console.log('🔔 Cart updated from other device:', data.cart.items.length, 'items');
           updateLocalStore(data.cart);
         });
 
         socketRef.current.on('userJoined', (data: any) => {
-          // User joined cart
+          console.log('👤 User joined cart');
         });
 
         socketRef.current.on('userLeft', (data: any) => {
-          // User left cart
+          console.log('👤 User left cart');
         });
 
         socketRef.current.on('error', (error: any) => {
-          console.error('Socket error:', error);
+          console.error('❌ Socket error:', error);
         });
 
         socketRef.current.on('disconnect', () => {
-          // Disconnected from cart server
+          console.warn('⚠️ WebSocket disconnected');
         });
       } catch (error) {
-        // Failed to initialize socket
+        console.error('❌ Failed to initialize socket:', error);
       }
     };
 
@@ -128,6 +154,7 @@ export interface SharedCart {
     if (!tableId) return;
     
     const fetchInitialCart = async () => {
+      console.log('📥 Fetching initial cart for table:', tableId);
       try {
         const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
         const response = await fetch(url);
@@ -136,10 +163,11 @@ export interface SharedCart {
           const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
           // Handle both wrapped and unwrapped responses
           const cart = 'data' in json ? json.data : json;
+          console.log('📦 Initial cart fetched:', cart.items.length, 'items');
           updateLocalStore(cart);
         }
       } catch (error) {
-        console.error('Failed to fetch initial cart:', error);
+        console.error('❌ Failed to fetch initial cart:', error);
       }
     };
 
