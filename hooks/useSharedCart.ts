@@ -29,6 +29,7 @@ export interface SharedCart {
  */
   export const useSharedCart = (tableId?: string) => {
     const socketRef = useRef<any>(null);
+    const tableIdRef = useRef<string | null>(null);
     const {
       setTableId,
       items,
@@ -113,6 +114,8 @@ export interface SharedCart {
       return;
     }
 
+    // Store tableId in ref so it's always available in closures
+    tableIdRef.current = tableId;
     console.log('🚀 Initializing shared cart for table:', tableId);
     setTableId(tableId);
 
@@ -178,12 +181,13 @@ export interface SharedCart {
 
   // Fetch initial cart data
   useEffect(() => {
-    if (!tableId) return;
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) return;
     
     const fetchInitialCart = async () => {
-      console.log('📥 Fetching initial cart for table:', tableId);
+      console.log('📥 Fetching initial cart for table:', currentTableId);
       try {
-        const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
+        const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
         const response = await fetch(url);
 
         if (response.ok) {
@@ -217,10 +221,11 @@ export interface SharedCart {
     optionsSubtotal?: number,
     options?: Record<string, any>[] | null,
   ) => {
-    if (!tableId) throw new Error('Table ID not set');
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) throw new Error('Table ID not set');
 
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${tableId}/items`;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -250,7 +255,7 @@ export interface SharedCart {
     if (!tableId) throw new Error('Table ID not set');
 
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${tableId}/items/${itemId}`;
+      const url = `${apiBaseUrl}/api/shared-carts/${tableIdRef.current}/items/${itemId}`;
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -270,10 +275,11 @@ export interface SharedCart {
 
   // Remove item
   const removeItemAsync = async (itemId: string) => {
-    if (!tableId) throw new Error('Table ID not set');
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) throw new Error('Table ID not set');
 
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${tableId}/items/${itemId}`;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
       const response = await fetch(url, { method: 'DELETE' });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -289,10 +295,11 @@ export interface SharedCart {
 
   // Get current cart
   const fetchCart = async () => {
-    if (!tableId) throw new Error('Table ID not set');
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) throw new Error('Table ID not set');
 
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
       const response = await fetch(url);
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -308,10 +315,11 @@ export interface SharedCart {
 
   // Clear cart
   const clearCartAsync = async () => {
-    if (!tableId) throw new Error('Table ID not set');
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) throw new Error('Table ID not set');
 
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
       const response = await fetch(url, { method: 'DELETE' });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

@@ -11,8 +11,10 @@ import { Product, SelectedOption } from '@/types';
  */
 export function useSyncedCart() {
   const cartStore = useCartStore();
-  const sharedCart = useSharedCart();
   const { isSessionActive, tableId } = useCurrentTable();
+  
+  // Pass tableId directly to useSharedCart so it initializes properly
+  const sharedCart = useSharedCart(tableId || undefined);
 
   const addItem = async (
     product: Product,
