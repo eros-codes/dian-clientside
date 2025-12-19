@@ -170,6 +170,47 @@ export interface SharedCart {
     fetchInitialCart();
   }, [tableId, apiBaseUrl]);
 
+  // Sync local items with server when items change locally
+  useEffect(() => {
+    if (!tableId) return;
+
+    const syncLocalItemsWithServer = async () => {
+      try {
+        // Get current server state
+        const response = await fetch(`${apiBaseUrl}/api/shared-carts/${tableId}`);
+        if (!response.ok) return;
+        
+        const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+        const serverCart = 'data' in json ? json.data : json;
+        const serverItemIds = new Set(serverCart.items.map(si => si.id));
+
+        // Find new items (items in local store that aren't on server)
+        for (const localItem of items) {
+          if (!serverItemIds.has(localItem.id)) {
+            console.log('⬆️ Pushing new item to server:', localItem.productId);
+            await addItem(
+              localItem.productId,
+              localItem.quantity,
+              localItem.unitPrice,
+              localItem.baseUnitPrice,
+              localItem.optionsSubtotal,
+              localItem.options
+            );
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to sync local items with server:', error);
+      }
+    };
+
+    // Debounce the sync to avoid too many requests
+    const timer = setTimeout(() => {
+      syncLocalItemsWithServer();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [items, tableId, apiBaseUrl, addItem]);
+
   // Add item to shared cart
   const addItem = async (
     productId: string,
