@@ -38,6 +38,7 @@ const PaymentSection = dynamic(() => import('@/components/checkout/PaymentSectio
 }) as any;
 import { useCartStore } from '@/stores/cartStore';
 import { useCreateOrder } from '@/hooks/useApi';
+import { useSharedCart } from '@/hooks/useSharedCart';
 import { Price } from '@/components/ui/Price';
 import { toPersianDigits } from '@/lib/utils';
 import { footerSettingsApi } from '@/lib/api-real';
@@ -115,6 +116,7 @@ export default function CheckoutPage() {
 
   const { items, totalAmount } = useCartStore();
   const createOrderMutation = useCreateOrder();
+  const shared = useSharedCart();
   const [serviceFee, setServiceFee] = useState<number>(0);
   const [taxMultiplier, setTaxMultiplier] = useState<number>(1);
   const [bulkDiscountThreshold, setBulkDiscountThreshold] = useState<number>(0);
@@ -472,6 +474,19 @@ export default function CheckoutPage() {
           localStorage.setItem('pendingClearCart', String(createdOrder.id));
         } catch (e) {
           // ignore storage errors
+        }
+        // Clear shared cart on server and local store
+        try {
+          if (shared && typeof shared.clearCart === 'function') {
+            await shared.clearCart();
+          }
+        } catch (e) {
+          console.warn('Failed to clear shared cart on server after order', e);
+        }
+        try {
+          useCartStore.getState().clearCart();
+        } catch (e) {
+          // ignore
         }
         // پرداخت در صندوق - مستقیم به صفحه تایید برو
         router.push(`/orders/confirmation?orderId=${createdOrder.id}`);
