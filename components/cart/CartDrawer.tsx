@@ -80,11 +80,19 @@ export function CartDrawer() {
             
             <Box sx={{ display: 'flex', gap: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
               <Button
-                component={Link}
-                href="/cart"
                 variant="outlined"
                 fullWidth
-                onClick={closeCart}
+                onClick={async () => {
+                  closeCart();
+                  try {
+                    if (shared && typeof shared.fetchCart === 'function') {
+                      await shared.fetchCart();
+                    }
+                  } catch (e) {
+                    console.warn('Failed to fetch shared cart before opening cart page', e);
+                  }
+                  router.push('/cart');
+                }}
               >
                 مشاهده سبد
               </Button>

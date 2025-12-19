@@ -33,6 +33,7 @@ export interface SharedCart {
 // get the same socket/tableId state.
 const socketRef: { current: any | null } = { current: null };
 const tableIdRef: { current: string | null } = { current: null };
+const fetchingRef: { current: boolean } = { current: false };
 
   export const useSharedCart = (tableId?: string) => {
     const {
@@ -64,7 +65,7 @@ const tableIdRef: { current: string | null } = { current: null };
     // (This ensures consistency across devices)
     console.log(`📊 Server: ${cart.items.length} items, Local: ${existingItemCount} items`);
 
-    storeClearCart();
+    // Do not clear the cart to avoid transient empty UI
 
     // Build local items, fetching product metadata when needed
     const productFetches: Array<Promise<void>> = [];
@@ -113,12 +114,10 @@ const tableIdRef: { current: string | null } = { current: null };
       await Promise.all(productFetches);
     } catch {}
 
-    // Write new items in single state update
-    useCartStore.setState((state) => {
-      const newItems = [...localItems];
-      const { totalItems, totalAmount } = calculateTotals(newItems);
-      return { items: newItems, totalItems, totalAmount };
-    });
+    // Write new items in a single state update (do NOT clear first — avoids UI blink)
+    const newItems = [...localItems];
+    const { totalItems, totalAmount } = calculateTotals(newItems);
+    useCartStore.setState(() => ({ items: newItems, totalItems, totalAmount }));
 
     console.log('✅ Local store synced. Now has', useCartStore.getState().items.length, 'items');
   };
@@ -286,28 +285,37 @@ const tableIdRef: { current: string | null } = { current: null };
     return tableIdRef.current;
   };
   useEffect(() => {
-    if (!tableId) {
-      console.log('⏭️ No tableId, cannot fetch initial cart');
-      return;
-    }
-    
-    tableIdRef.current = tableId; // Ensure ref is set
-    
+    let mounted = true;
     const fetchInitialCart = async () => {
-      console.log('📥 Fetching initial cart for table:', tableId);
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
       try {
-        const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
-        const response = await fetch(url);
-
-        if (response.ok) {
-          const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
-          // Handle both wrapped and unwrapped responses
-          const cart = 'data' in json ? json.data : json;
-          console.log('📦 Initial cart fetched:', cart.items.length, 'items');
-          await updateLocalStore(cart);
+        // Determine effective tableId: prefer provided prop, then module ref, then storage
+        const effectiveTableId = tableId || tableIdRef.current || await waitForTableId(2000);
+        if (!effectiveTableId) {
+          console.log('⏭️ No tableId, cannot fetch initial cart');
+          return;
         }
-      } catch (error) {
-        console.error('❌ Failed to fetch initial cart:', error);
+
+        tableIdRef.current = effectiveTableId;
+        setTableId(effectiveTableId);
+
+        console.log('📥 Fetching initial cart for table:', effectiveTableId);
+        try {
+          const url = `${apiBaseUrl}/api/shared-carts/${effectiveTableId}`;
+          const response = await fetch(url);
+
+          if (response.ok) {
+            const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+            const cart = 'data' in json ? json.data : json;
+            console.log('📦 Initial cart fetched:', cart.items.length, 'items');
+            await updateLocalStore(cart);
+          }
+        } catch (error) {
+          console.error('❌ Failed to fetch initial cart:', error);
+        }
+      } finally {
+        fetchingRef.current = false;
       }
     };
 
