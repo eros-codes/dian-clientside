@@ -19,7 +19,7 @@ export default function QrIssuePage() {
   useEffect(() => {
     const issueToken = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
         const response = await fetch(
           `${apiUrl}/api/qr/issue/${tableStaticId}`,
           {
