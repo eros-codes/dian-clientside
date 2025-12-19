@@ -208,8 +208,8 @@ export const useCartStore = create<CartState>()(
           state.totalAmount = totalAmount;
         }
       },
-      // Add skipHydration to prevent hydration mismatches
-      skipHydration: true,
+      // Hydrate automatically on load so persisted cart is available
+      // (removed skipHydration to avoid race where other hooks clear storage before rehydrate)
     }
   )
 );
