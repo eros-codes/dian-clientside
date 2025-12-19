@@ -15,7 +15,7 @@ import { Product, SelectedOption } from '@/types';
 export function useSyncedCart() {
   const cartStore = useCartStore();
   const sharedCart = useSharedCart(); // Get the singleton instance initialized in Header
-  const { isSessionActive, tableId } = useCurrentTable();
+  const { isSessionActive, sessionId } = useCurrentTable(); // Use sessionId, not tableId
 
   // Defensive check: if sharedCart is not properly initialized
   const hasSharedCart = sharedCart && typeof sharedCart.addItem === 'function';
@@ -29,7 +29,7 @@ export function useSyncedCart() {
     cartStore.addItem(product, quantity, options);
 
     // If there's an active session AND sharedCart is available, sync to server
-    if (isSessionActive && tableId && hasSharedCart) {
+    if (isSessionActive && sessionId && hasSharedCart) {
       try {
         await sharedCart.addItem(
           product.id,
@@ -50,7 +50,7 @@ export function useSyncedCart() {
   const removeItem = async (itemId: string) => {
     cartStore.removeItem(itemId);
 
-    if (isSessionActive && tableId && hasSharedCart) {
+    if (isSessionActive && sessionId && hasSharedCart) {
       try {
         await sharedCart.removeItem(itemId);
         console.log('✅ Item removed from server:', itemId);
@@ -63,7 +63,7 @@ export function useSyncedCart() {
   const updateQuantity = async (itemId: string, quantity: number) => {
     cartStore.updateQuantity(itemId, quantity);
 
-    if (isSessionActive && tableId && hasSharedCart) {
+    if (isSessionActive && sessionId && hasSharedCart) {
       try {
         await sharedCart.updateQuantity(itemId, quantity);
         console.log('✅ Quantity synced to server:', itemId, quantity);

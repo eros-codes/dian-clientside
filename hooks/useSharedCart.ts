@@ -181,13 +181,17 @@ export interface SharedCart {
 
   // Fetch initial cart data
   useEffect(() => {
-    const currentTableId = tableIdRef.current;
-    if (!currentTableId) return;
+    if (!tableId) {
+      console.log('⏭️ No tableId, cannot fetch initial cart');
+      return;
+    }
+    
+    tableIdRef.current = tableId; // Ensure ref is set
     
     const fetchInitialCart = async () => {
-      console.log('📥 Fetching initial cart for table:', currentTableId);
+      console.log('📥 Fetching initial cart for table:', tableId);
       try {
-        const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
+        const url = `${apiBaseUrl}/api/shared-carts/${tableId}`;
         const response = await fetch(url);
 
         if (response.ok) {
