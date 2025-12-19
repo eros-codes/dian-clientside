@@ -159,12 +159,16 @@ const tableIdRef: { current: string | null } = { current: null };
           .replace(/\/api\/?$/, '')
           .replace(/\/$/, '');
 
+        console.log('🔗 socketUrl:', socketUrl);
+
+        // Prefer polling first to avoid websocket upgrade/TransportError in some environments (proxy/CORS)
         socketRef.current = io(socketUrl, {
           reconnection: true,
           reconnectionDelay: 1000,
           reconnectionDelayMax: 5000,
           reconnectionAttempts: 5,
-          transports: ['websocket', 'polling'],
+          transports: ['polling', 'websocket'],
+          upgrade: true,
         });
 
         socketRef.current.on('connect', () => {
