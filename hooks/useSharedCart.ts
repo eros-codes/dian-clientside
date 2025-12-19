@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { productsApi } from '@/lib/api';
 import { useCartStore } from '@/stores/cartStore';
 import { SelectedOption } from '@/types';
 
@@ -41,62 +42,83 @@ const tableIdRef: { current: string | null } = { current: null };
 
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
-    // Helper to update local store from server cart
-    const updateLocalStore = (cart: SharedCart) => {
+    // Helper to update local store from server cart — fetch product metadata when needed
+    const updateLocalStore = async (cart: SharedCart) => {
     if (!cart) {
       console.warn('⚠️ Cart is null or undefined, skipping update');
       return;
     }
-    
+
     if (!Array.isArray(cart.items)) {
       console.error('❌ Invalid cart structure - items is not an array:', cart);
       return;
     }
 
     console.log('🔄 Updating local store with server cart. Items:', cart.items.length);
-    
+
     const currentState = useCartStore.getState();
     const existingItemCount = currentState.items.length;
-    
+
     // Always sync with server state — if server has 0 items, clear local
     // (This ensures consistency across devices)
     console.log(`📊 Server: ${cart.items.length} items, Local: ${existingItemCount} items`);
-    
+
     storeClearCart();
-    
+
+    // Build local items, fetching product metadata when needed
+    const productFetches: Array<Promise<void>> = [];
+    const localItems: any[] = [];
+
     cart.items.forEach(serverItem => {
       if (!serverItem?.productId) return;
-      
-      const { addItem } = useCartStore.getState();
-      const product = { 
-        id: serverItem.productId, 
-        name: '', 
-        price: serverItem.unitPrice || 0, 
-        images: [] 
+
+      const productPlaceholder = {
+        id: serverItem.productId,
+        name: '',
+        price: serverItem.unitPrice || 0,
+        images: [] as string[],
       } as any;
-      
-      // Use the server-generated item ID to maintain consistency
-      // addItem will create the same ID locally as on server
+
       const localItem = {
-        id: serverItem.id, // Use server ID directly
+        id: serverItem.id,
         productId: serverItem.productId,
-        product,
+        product: productPlaceholder,
         quantity: serverItem.quantity || 1,
         unitPrice: serverItem.unitPrice,
         baseUnitPrice: serverItem.baseUnitPrice,
         options: Array.isArray(serverItem.options) ? serverItem.options : [],
         optionsSubtotal: serverItem.optionsSubtotal || 0,
       };
-      
-      // Directly update store state instead of going through addItem
-      // to preserve the server-generated IDs
-      useCartStore.setState((state) => {
-        const newItems = [...state.items, localItem as any];
-        const { totalItems, totalAmount } = calculateTotals(newItems);
-        return { items: newItems, totalItems, totalAmount };
-      });
+
+      // Fetch product details asynchronously
+      const fetchPromise = (async () => {
+        try {
+          const prod = await productsApi.getProduct(serverItem.productId);
+          if (prod) {
+            localItem.product.name = prod.name || localItem.product.name;
+            localItem.product.images = (prod.images && prod.images.length) ? prod.images : localItem.product.images;
+            localItem.product.price = prod.price ?? localItem.product.price;
+          }
+        } catch (e) {
+          // ignore fetch errors — use placeholder
+        }
+      })();
+
+      productFetches.push(fetchPromise);
+      localItems.push(localItem);
     });
-    
+
+    try {
+      await Promise.all(productFetches);
+    } catch {}
+
+    // Write new items in single state update
+    useCartStore.setState((state) => {
+      const newItems = [...localItems];
+      const { totalItems, totalAmount } = calculateTotals(newItems);
+      return { items: newItems, totalItems, totalAmount };
+    });
+
     console.log('✅ Local store synced. Now has', useCartStore.getState().items.length, 'items');
   };
 
@@ -139,7 +161,8 @@ const tableIdRef: { current: string | null } = { current: null };
 
         socketRef.current.on('connect', () => {
           console.log('✅ WebSocket connected');
-          socketRef.current.emit('joinCart', { tableId, userId: undefined });
+          // Use module-level tableIdRef in case tableId changed before connect
+          socketRef.current.emit('joinCart', { tableId: tableIdRef.current, userId: undefined });
         });
 
         socketRef.current.on('cartSubscribed', (data: any) => {
@@ -148,7 +171,8 @@ const tableIdRef: { current: string | null } = { current: null };
 
         socketRef.current.on('cartUpdated', (data: { cart: SharedCart }) => {
           console.log('🔔 Cart updated from other device:', data.cart.items.length, 'items');
-          updateLocalStore(data.cart);
+          // Fire-and-forget update (async)
+          updateLocalStore(data.cart).catch((e) => console.error('Failed to apply remote cart update', e));
         });
 
         socketRef.current.on('userJoined', (data: any) => {
@@ -183,6 +207,14 @@ const tableIdRef: { current: string | null } = { current: null };
   }, [tableId, setTableId]);
 
   // Fetch initial cart data
+  // Wait-for utility: if add/update called before Header sets tableId, wait briefly
+  const waitForTableId = async (timeoutMs = 2000) => {
+    const start = Date.now();
+    while (!tableIdRef.current && Date.now() - start < timeoutMs) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    return tableIdRef.current;
+  };
   useEffect(() => {
     if (!tableId) {
       console.log('⏭️ No tableId, cannot fetch initial cart');
@@ -202,7 +234,7 @@ const tableIdRef: { current: string | null } = { current: null };
           // Handle both wrapped and unwrapped responses
           const cart = 'data' in json ? json.data : json;
           console.log('📦 Initial cart fetched:', cart.items.length, 'items');
-          updateLocalStore(cart);
+          await updateLocalStore(cart);
         }
       } catch (error) {
         console.error('❌ Failed to fetch initial cart:', error);
@@ -228,7 +260,11 @@ const tableIdRef: { current: string | null } = { current: null };
     optionsSubtotal?: number,
     options?: Record<string, any>[] | null,
   ) => {
-    const currentTableId = tableIdRef.current;
+    let currentTableId = tableIdRef.current;
+    if (!currentTableId) {
+      currentTableId = await waitForTableId(2000);
+    }
+
     if (!currentTableId) {
       console.warn('⚠️ No table session, skipping server sync. Item added locally only.');
       return null; // Return null instead of throwing
@@ -252,7 +288,7 @@ const tableIdRef: { current: string | null } = { current: null };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
       const cart = 'data' in json ? json.data : json;
-      updateLocalStore(cart);
+      await updateLocalStore(cart);
       return cart;
     } catch (error) {
       console.error('Failed to add item to shared cart:', error);
@@ -262,7 +298,8 @@ const tableIdRef: { current: string | null } = { current: null };
 
   // Update item quantity
   const updateQuantity = async (itemId: string, quantity: number) => {
-    const currentTableId = tableIdRef.current;
+    let currentTableId = tableIdRef.current;
+    if (!currentTableId) currentTableId = await waitForTableId(2000);
     if (!currentTableId) {
       console.warn('⚠️ No table session, skipping server sync. Quantity updated locally only.');
       return null;
@@ -279,7 +316,7 @@ const tableIdRef: { current: string | null } = { current: null };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
       const cart = 'data' in json ? json.data : json;
-      updateLocalStore(cart);
+      await updateLocalStore(cart);
       return cart;
     } catch (error) {
       console.error('Failed to update item quantity:', error);
@@ -289,7 +326,8 @@ const tableIdRef: { current: string | null } = { current: null };
 
   // Remove item
   const removeItemAsync = async (itemId: string) => {
-    const currentTableId = tableIdRef.current;
+    let currentTableId = tableIdRef.current;
+    if (!currentTableId) currentTableId = await waitForTableId(2000);
     if (!currentTableId) {
       console.warn('⚠️ No table session, skipping server sync. Item removed locally only.');
       return null;
@@ -302,7 +340,7 @@ const tableIdRef: { current: string | null } = { current: null };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
       const cart = 'data' in json ? json.data : json;
-      updateLocalStore(cart);
+      await updateLocalStore(cart);
       return cart;
     } catch (error) {
       console.error('Failed to remove item:', error);
@@ -312,7 +350,8 @@ const tableIdRef: { current: string | null } = { current: null };
 
   // Get current cart
   const fetchCart = async () => {
-    const currentTableId = tableIdRef.current;
+    let currentTableId = tableIdRef.current;
+    if (!currentTableId) currentTableId = await waitForTableId(2000);
     if (!currentTableId) {
       console.warn('⚠️ No table session, cannot fetch from server.');
       return null;
@@ -325,7 +364,7 @@ const tableIdRef: { current: string | null } = { current: null };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
       const cart = 'data' in json ? json.data : json;
-      updateLocalStore(cart);
+      await updateLocalStore(cart);
       return cart;
     } catch (error) {
       console.error('Failed to fetch cart:', error);
@@ -335,7 +374,8 @@ const tableIdRef: { current: string | null } = { current: null };
 
   // Clear cart
   const clearCartAsync = async () => {
-    const currentTableId = tableIdRef.current;
+    let currentTableId = tableIdRef.current;
+    if (!currentTableId) currentTableId = await waitForTableId(2000);
     if (!currentTableId) {
       console.warn('⚠️ No table session, cannot clear from server.');
       return null;
@@ -348,7 +388,7 @@ const tableIdRef: { current: string | null } = { current: null };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
       const cart = 'data' in json ? json.data : json;
-      updateLocalStore(cart);
+      await updateLocalStore(cart);
       return cart;
     } catch (error) {
       console.error('Failed to clear cart:', error);
