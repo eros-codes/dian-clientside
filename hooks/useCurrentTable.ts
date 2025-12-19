@@ -106,16 +106,18 @@ export function readCurrentTable(): CurrentTableState {
   const rawString = typeof window !== "undefined" ? localStorage.getItem(CURRENT_TABLE_KEY) : null;
   const raw = parseStoredTable(rawString);
   const tableNumber = extractTableNumber(raw);
+  const tableId = raw?.tableId?.trim() || raw?.id?.trim() || null;
   const sessionId = raw?.sessionId?.trim() || null;
   const sessionExpiresAt = parseExpiry(raw?.sessionExpiresAt);
   const isSessionActive = Boolean(sessionId && sessionExpiresAt && sessionExpiresAt > Date.now());
 
-  return { raw, tableNumber, sessionId, sessionExpiresAt, isSessionActive };
+  return { raw, tableNumber, tableId, sessionId, sessionExpiresAt, isSessionActive };
 }
 
 export interface CurrentTableState {
   raw: StoredTable | null;
   tableNumber: string | null;
+  tableId: string | null;
   sessionId: string | null;
   sessionExpiresAt: number | null;
   isSessionActive: boolean;

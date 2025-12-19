@@ -21,6 +21,7 @@ import { Product } from '@/types';
 import { Price } from '@/components/ui/Price';
 import { toPersianDigits } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
+import { useSharedCart } from '@/hooks/useSharedCart';
 import { useCartHydration } from '@/hooks/useCartHydration';
 import ClientOnly from '@/components/ui/ClientOnly';
 import { truncateText } from '@/lib/utils';
@@ -47,6 +48,7 @@ export function ProductCard({ product }: ProductCardProps) {
   
   const t = useTranslations();
   const { addItem, items } = useCartStore();
+  const { addItem: addSharedItem } = useSharedCart();
   const isHydrated = useCartHydration();
   const [cartAnim, setCartAnim] = React.useState(false);
   const [orderCount, setOrderCount] = React.useState(5); // TEMP: Fixed test value
@@ -74,6 +76,7 @@ export function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     if (addDisabled) return;
     addItem(product);
+    addSharedItem(product.id, 1, Number(product.price), Number(product.price));
     setCartAnim(true);
     setTimeout(() => setCartAnim(false), 320);
   };

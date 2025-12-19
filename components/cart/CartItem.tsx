@@ -20,6 +20,7 @@ import { Price } from '@/components/ui/Price';
 import { useTranslations } from 'next-intl';
 import { QuantityStepper } from '@/components/ui/QuantityStepper';
 import { useCartStore } from '@/stores/cartStore';
+import { useSharedCart } from '@/hooks/useSharedCart';
 
 interface CartItemProps {
   item: CartItemType;
@@ -56,6 +57,7 @@ function resolveImageUrl(img: unknown): string | undefined {
 
 export function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCartStore();
+  const { updateQuantity: updateSharedQuantity, removeItem: removeSharedItem } = useSharedCart();
   const [shaking, setShaking] = React.useState(false);
   const t = useTranslations();
 
@@ -69,6 +71,7 @@ export function CartItem({ item }: CartItemProps) {
 
   const handleQuantityChange = (newQuantity: number) => {
     updateQuantity(item.id, newQuantity);
+    updateSharedQuantity(item.id, newQuantity);
   };
 
   const firstImage = item.product.images[0];
@@ -78,6 +81,7 @@ export function CartItem({ item }: CartItemProps) {
     setShaking(true);
     setTimeout(() => {
       removeItem(item.id);
+      removeSharedItem(item.id);
     }, 220);
   };
 

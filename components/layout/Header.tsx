@@ -32,6 +32,7 @@ import {
 
 import { useCartStore } from '@/stores/cartStore';
 import { useMenuStore } from '@/stores/menuStore';
+import { useSharedCart } from '@/hooks/useSharedCart';
 
 export function Header() {
   const t = useTranslations();
@@ -43,9 +44,12 @@ export function Header() {
   const [searchValue, setSearchValue] = useState('');
   
   const { totalItems, openCart } = useCartStore();
-  const { tableNumber } = useCurrentTable();
-  const hasTableSession = !!(tableNumber && tableNumber.trim().length);
+  const { tableNumber, tableId, sessionId } = useCurrentTable();
+  const hasTableSession = !!(sessionId && sessionId.trim().length);
   const { menuType, setMenuType } = useMenuStore();
+  
+  // Activate shared cart when table session exists
+  useSharedCart(hasTableSession && tableId ? tableId : undefined);
 
   useEffect(() => {
     setIsMounted(true);
