@@ -10,6 +10,7 @@ interface CartState {
   totalItems: number;
   totalAmount: number;
   tableId: string | null; // Track which table this cart belongs to
+  sessionId: string | null; // Track the session ID (from QR scan)
   addItem: (product: Product, quantity?: number, options?: SelectedOption[]) => void;
   removeItem: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
@@ -17,6 +18,7 @@ interface CartState {
   openCart: () => void;
   closeCart: () => void;
   setTableId: (tableId: string | null) => void;
+  setSessionId: (sessionId: string | null) => void;
 }
 
 const calculateTotals = (items: CartItem[]) => {
@@ -94,9 +96,14 @@ export const useCartStore = create<CartState>()(
       totalItems: 0,
       totalAmount: 0,
       tableId: null,
+      sessionId: null,
 
       setTableId: (tableId: string | null) => {
         set({ tableId });
+      },
+
+      setSessionId: (sessionId: string | null) => {
+        set({ sessionId });
       },
 
       addItem: (product: Product, quantity = 1, options?: SelectedOption[]) => {

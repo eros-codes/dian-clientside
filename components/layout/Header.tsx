@@ -43,10 +43,17 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   
-  const { totalItems, openCart } = useCartStore();
+  const { totalItems, openCart, setSessionId } = useCartStore();
   const { tableNumber, tableId, sessionId, isSessionActive } = useCurrentTable();
   const hasTableSession = !!(sessionId && sessionId.trim().length);
   const { menuType, setMenuType } = useMenuStore();
+  
+  // Save sessionId to store so all components can access it
+  useEffect(() => {
+    if (isSessionActive && sessionId) {
+      setSessionId(sessionId);
+    }
+  }, [sessionId, isSessionActive, setSessionId]);
   
   // Activate shared cart only when there's an active session with valid sessionId
   useSharedCart(isSessionActive && sessionId ? sessionId : undefined);

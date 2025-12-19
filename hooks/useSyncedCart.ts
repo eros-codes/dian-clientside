@@ -15,7 +15,10 @@ import { Product, SelectedOption } from '@/types';
 export function useSyncedCart() {
   const cartStore = useCartStore();
   const sharedCart = useSharedCart(); // Get the singleton instance initialized in Header
-  const { isSessionActive, sessionId } = useCurrentTable(); // Use sessionId, not tableId
+  
+  // Get sessionId from store (saved in Header when QR is scanned)
+  const sessionId = cartStore.sessionId;
+  const isSessionActive = Boolean(sessionId && sessionId.trim().length);
 
   // Defensive check: if sharedCart is not properly initialized
   const hasSharedCart = sharedCart && typeof sharedCart.addItem === 'function';
