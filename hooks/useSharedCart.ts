@@ -133,8 +133,10 @@ export interface SharedCart {
         const response = await fetch(url);
 
         if (response.ok) {
-          const data = (await response.json()) as SharedCart;
-          updateLocalStore(data);
+          const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+          // Handle both wrapped and unwrapped responses
+          const cart = 'data' in json ? json.data : json;
+          updateLocalStore(cart);
         }
       } catch (error) {
         console.error('Failed to fetch initial cart:', error);
@@ -171,9 +173,10 @@ export interface SharedCart {
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as SharedCart;
-      updateLocalStore(data);
-      return data;
+      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+      const cart = 'data' in json ? json.data : json;
+      updateLocalStore(cart);
+      return cart;
     } catch (error) {
       console.error('Failed to add item to shared cart:', error);
       throw error;
@@ -193,9 +196,10 @@ export interface SharedCart {
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as SharedCart;
-      updateLocalStore(data);
-      return data;
+      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+      const cart = 'data' in json ? json.data : json;
+      updateLocalStore(cart);
+      return cart;
     } catch (error) {
       console.error('Failed to update item quantity:', error);
       throw error;
@@ -211,9 +215,10 @@ export interface SharedCart {
       const response = await fetch(url, { method: 'DELETE' });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as SharedCart;
-      updateLocalStore(data);
-      return data;
+      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+      const cart = 'data' in json ? json.data : json;
+      updateLocalStore(cart);
+      return cart;
     } catch (error) {
       console.error('Failed to remove item:', error);
       throw error;
@@ -229,9 +234,10 @@ export interface SharedCart {
       const response = await fetch(url);
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as SharedCart;
-      updateLocalStore(data);
-      return data;
+      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+      const cart = 'data' in json ? json.data : json;
+      updateLocalStore(cart);
+      return cart;
     } catch (error) {
       console.error('Failed to fetch cart:', error);
       throw error;
@@ -247,9 +253,10 @@ export interface SharedCart {
       const response = await fetch(url, { method: 'DELETE' });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as SharedCart;
-      updateLocalStore(data);
-      return data;
+      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
+      const cart = 'data' in json ? json.data : json;
+      updateLocalStore(cart);
+      return cart;
     } catch (error) {
       console.error('Failed to clear cart:', error);
       throw error;
