@@ -348,11 +348,7 @@ export function Header() {
                     {totalItems}
                   </span>
                 )}
-                {pendingCount > 0 && (
-                  <span title={`${pendingCount} pending sync`} className="absolute -bottom-1 -right-1 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-yellow-500 text-[10px] font-medium text-black">
-                    {pendingCount}
-                  </span>
-                )}
+                {/* pendingCount badge intentionally removed (was causing unwanted yellow circle) */}
               </Button>
             )}
           </div>
