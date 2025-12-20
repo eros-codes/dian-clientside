@@ -20,27 +20,14 @@ export function useSyncedCart() {
   const sessionId = cartStore.sessionId;
   const isSessionActive = Boolean(sessionId && sessionId.trim().length);
 
-  // Defensive check: if sharedCart is not properly initialized
-  const hasSharedCart = sharedCart && typeof sharedCart.addItem === 'function';
-
   const addItem = async (
     product: Product,
     quantity: number = 1,
     options?: SelectedOption[]
   ) => {
     // Always add to local store first
+    // Only perform local update — server-side shared cart removed
     cartStore.addItem(product, quantity, options);
-
-    // If there's an active session AND sharedCart is available, sync to server
-    if (isSessionActive && sessionId && hasSharedCart) {
-      try {
-        await sharedCart.addItem(product, quantity, options);
-        console.log('✅ Item synced to server:', product.id);
-      } catch (error) {
-        console.error('❌ Failed to sync item to server:', error);
-        // Don't rethrow - let local update persist
-      }
-    }
   };
 
   const removeItem = async (itemId: string) => {
