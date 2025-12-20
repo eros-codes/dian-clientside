@@ -34,6 +34,15 @@ export interface SharedCart {
 const socketRef: { current: any | null } = { current: null };
 const tableIdRef: { current: string | null } = { current: null };
 const fetchingRef: { current: boolean } = { current: false };
+// Pending actions queue (persisted) for reliable saves when network fails
+type PendingAction =
+  | { type: 'add'; payload: any; attempts?: number }
+  | { type: 'update'; payload: any; attempts?: number }
+  | { type: 'remove'; payload: any; attempts?: number }
+  | { type: 'clear'; payload?: any; attempts?: number };
+const PENDING_KEY = 'pendingSharedCartActions';
+const queueRef: { current: PendingAction[] } = { current: [] };
+let flushInProgress = false;
 
   export const useSharedCart = (tableId?: string) => {
     const {
@@ -132,6 +141,127 @@ const fetchingRef: { current: boolean } = { current: false };
     return { totalItems, totalAmount };
   };
 
+  // Persist/load pending queue
+  const saveQueueToStorage = () => {
+    try {
+      localStorage.setItem(PENDING_KEY, JSON.stringify(queueRef.current || []));
+    } catch {}
+  };
+
+  const loadQueueFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(PENDING_KEY);
+      if (!raw) return [] as PendingAction[];
+      const parsed = JSON.parse(raw) as PendingAction[];
+      queueRef.current = Array.isArray(parsed) ? parsed : [];
+      return queueRef.current;
+    } catch {
+      queueRef.current = [];
+      return [] as PendingAction[];
+    }
+  };
+
+  const enqueueAction = (action: PendingAction) => {
+    queueRef.current = queueRef.current || [];
+    queueRef.current.push({ attempts: 0, ...action });
+    saveQueueToStorage();
+    scheduleFlush(0);
+  };
+
+  const performAction = async (action: PendingAction) => {
+    const currentTableId = tableIdRef.current;
+    if (!currentTableId) throw new Error('no-table');
+
+    if (action.type === 'add') {
+      const body = action.payload;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const cart = 'data' in json ? json.data : json;
+      await updateLocalStore(cart);
+      return cart;
+    }
+
+    if (action.type === 'update') {
+      const { itemId, quantity } = action.payload;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
+      const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity }) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const cart = 'data' in json ? json.data : json;
+      await updateLocalStore(cart);
+      return cart;
+    }
+
+    if (action.type === 'remove') {
+      const { itemId } = action.payload;
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
+      const res = await fetch(url, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const cart = 'data' in json ? json.data : json;
+      await updateLocalStore(cart);
+      return cart;
+    }
+
+    if (action.type === 'clear') {
+      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
+      const res = await fetch(url, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const cart = 'data' in json ? json.data : json;
+      await updateLocalStore(cart);
+      return cart;
+    }
+  };
+
+  const scheduleFlush = (delayMs = 500) => {
+    if (flushInProgress) return;
+    flushInProgress = true;
+    setTimeout(async () => {
+      try {
+        await flushQueue();
+      } finally {
+        flushInProgress = false;
+      }
+    }, delayMs);
+  };
+
+  const flushQueue = async () => {
+    loadQueueFromStorage();
+    if (!queueRef.current || queueRef.current.length === 0) return;
+
+    // Process sequentially
+    for (let i = 0; i < queueRef.current.length; ) {
+      const action = queueRef.current[i];
+      try {
+        await performAction(action);
+        // remove from queue
+        queueRef.current.splice(i, 1);
+        saveQueueToStorage();
+      } catch (err) {
+        action.attempts = (action.attempts || 0) + 1;
+        // If too many attempts, drop and log
+        if ((action.attempts || 0) >= 5) {
+          console.warn('Dropping pending shared-cart action after retries', action);
+          queueRef.current.splice(i, 1);
+          saveQueueToStorage();
+          continue;
+        }
+        // exponential backoff for next retry
+        const backoff = Math.min(30000, 500 * Math.pow(2, (action.attempts || 1)));
+        // move to next index but schedule another flush later
+        scheduleFlush(backoff);
+        i++;
+      }
+    }
+  };
+
   // Initialize WebSocket connection. Use provided tableId, or fallback to module ref or localStorage.
   useEffect(() => {
     const effectiveTableId = tableId || tableIdRef.current || readCurrentTable()?.tableId || null;
@@ -180,6 +310,10 @@ const fetchingRef: { current: boolean } = { current: false };
             if (s && typeof s.emit === 'function') {
               s.emit('joinCart', payload, (ack: any) => {
                 console.log('📣 joinCart ack:', ack);
+                // Try flushing any pending actions when socket is available
+                try {
+                  scheduleFlush(0);
+                } catch {}
               });
             } else {
               console.warn('⚠️ Socket not available to emit joinCart');
@@ -207,6 +341,10 @@ const fetchingRef: { current: boolean } = { current: false };
               console.log('📣 Re-emitting joinCart after reconnect', payload);
               s.emit('joinCart', payload, (ack: any) => {
                 console.log('📣 joinCart ack after reconnect:', ack);
+                // flush pending queue after reconnect
+                try {
+                  scheduleFlush(0);
+                } catch {}
               });
             }
           } catch (e) {
@@ -288,6 +426,11 @@ const fetchingRef: { current: boolean } = { current: false };
     let mounted = true;
     const fetchInitialCart = async () => {
       if (fetchingRef.current) return;
+      // Load any pending queued actions persisted from previous sessions
+      try {
+        loadQueueFromStorage();
+        scheduleFlush(0);
+      } catch {}
       fetchingRef.current = true;
       try {
         // Determine effective tableId: prefer provided prop, then module ref, then storage
@@ -348,29 +491,45 @@ const fetchingRef: { current: boolean } = { current: false };
       return null; // Return null instead of throwing
     }
 
+    const action = {
+      type: 'add' as const,
+      payload: {
+        productId,
+        quantity,
+        unitPrice,
+        baseUnitPrice,
+        optionsSubtotal: optionsSubtotal || 0,
+        options: options || [],
+      },
+    };
+
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Try immediate perform
+      const res = await performAction(action);
+      return res;
+    } catch (err) {
+      console.warn('Add item failed, enqueuing for retry', err);
+      try {
+        enqueueAction(action as any);
+      } catch {}
+      // Optimistically add to local store so UI shows item immediately
+      try {
+        const current = useCartStore.getState();
+        const newItem = {
+          id: `local-${Date.now()}`,
           productId,
+          product: { id: productId, name: '', images: [], price: unitPrice },
           quantity,
           unitPrice,
           baseUnitPrice,
-          optionsSubtotal: optionsSubtotal || 0,
           options: options || [],
-        }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
-    } catch (error) {
-      console.error('Failed to add item to shared cart:', error);
-      throw error;
+          optionsSubtotal: optionsSubtotal || 0,
+        } as any;
+        const newItems = [...current.items, newItem];
+        const { totalItems, totalAmount } = calculateTotals(newItems);
+        useCartStore.setState(() => ({ items: newItems, totalItems, totalAmount }));
+      } catch {}
+      return null;
     }
   };
 
@@ -383,22 +542,23 @@ const fetchingRef: { current: boolean } = { current: false };
       return null;
     }
 
+    const action = { type: 'update' as const, payload: { itemId, quantity } };
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
-    } catch (error) {
-      console.error('Failed to update item quantity:', error);
-      throw error;
+      const res = await performAction(action);
+      return res;
+    } catch (err) {
+      console.warn('Update quantity failed, enqueuing', err);
+      try {
+        enqueueAction(action as any);
+      } catch {}
+      // Optimistic local update
+      try {
+        const state = useCartStore.getState();
+        const items = state.items.map((it: any) => (it.id === itemId ? { ...it, quantity } : it));
+        const { totalItems, totalAmount } = calculateTotals(items);
+        useCartStore.setState(() => ({ items, totalItems, totalAmount }));
+      } catch {}
+      return null;
     }
   };
 
@@ -411,18 +571,23 @@ const fetchingRef: { current: boolean } = { current: false };
       return null;
     }
 
+    const action = { type: 'remove' as const, payload: { itemId } };
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
-      const response = await fetch(url, { method: 'DELETE' });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
-    } catch (error) {
-      console.error('Failed to remove item:', error);
-      throw error;
+      const res = await performAction(action);
+      return res;
+    } catch (err) {
+      console.warn('Remove item failed, enqueuing', err);
+      try {
+        enqueueAction(action as any);
+      } catch {}
+      // Optimistic remove locally
+      try {
+        const state = useCartStore.getState();
+        const items = state.items.filter((it: any) => it.id !== itemId);
+        const { totalItems, totalAmount } = calculateTotals(items);
+        useCartStore.setState(() => ({ items, totalItems, totalAmount }));
+      } catch {}
+      return null;
     }
   };
 
@@ -459,18 +624,20 @@ const fetchingRef: { current: boolean } = { current: false };
       return null;
     }
 
+    const action = { type: 'clear' as const };
     try {
-      const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
-      const response = await fetch(url, { method: 'DELETE' });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const json = (await response.json()) as { success: boolean; data: SharedCart; timestamp: string } | SharedCart;
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
-    } catch (error) {
-      console.error('Failed to clear cart:', error);
-      throw error;
+      const res = await performAction(action);
+      return res;
+    } catch (err) {
+      console.warn('Clear cart failed, enqueuing', err);
+      try {
+        enqueueAction(action as any);
+      } catch {}
+      // Clear local store optimistically
+      try {
+        useCartStore.setState(() => ({ items: [], totalItems: 0, totalAmount: 0 }));
+      } catch {}
+      return null;
     }
   };
 
