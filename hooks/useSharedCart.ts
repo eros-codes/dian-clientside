@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useCartStore } from '@/stores/cartStore';
 
 // Local-only shared-cart replacement: no network, no queueing.
@@ -14,7 +14,7 @@ export const useSharedCart = (tableId?: string) => {
     clearCart: storeClearCart,
   } = useCartStore();
 
-  const init = useCallback(() => {
+  useEffect(() => {
     setTableId(tableId ?? null);
   }, [setTableId, tableId]);
 
@@ -34,7 +34,7 @@ export const useSharedCart = (tableId?: string) => {
 
   const clearCart = useCallback(() => storeClearCart(), [storeClearCart]);
 
-  init();
+  // initialization handled in useEffect to avoid state updates during render
 
   return {
     items,
