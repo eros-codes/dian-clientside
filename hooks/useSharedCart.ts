@@ -42,7 +42,8 @@ type PendingAction =
   | { type: 'clear'; payload?: any; attempts?: number };
 const PENDING_KEY = 'pendingSharedCartActions';
 const queueRef: { current: PendingAction[] } = { current: [] };
-let flushInProgress = false;
+const runningRef: { current: boolean } = { current: false };
+const timerRef: { current: number | null } = { current: null };
 
   export const useSharedCart = (tableId?: string) => {
     const {
@@ -145,6 +146,7 @@ let flushInProgress = false;
   const saveQueueToStorage = () => {
     try {
       localStorage.setItem(PENDING_KEY, JSON.stringify(queueRef.current || []));
+      try { window.dispatchEvent(new CustomEvent('sharedCart:queueChanged', { detail: { length: (queueRef.current||[]).length } })); } catch {}
     } catch {}
   };
 
@@ -154,6 +156,7 @@ let flushInProgress = false;
       if (!raw) return [] as PendingAction[];
       const parsed = JSON.parse(raw) as PendingAction[];
       queueRef.current = Array.isArray(parsed) ? parsed : [];
+      try { window.dispatchEvent(new CustomEvent('sharedCart:queueChanged', { detail: { length: queueRef.current.length } })); } catch {}
       return queueRef.current;
     } catch {
       queueRef.current = [];
@@ -165,6 +168,7 @@ let flushInProgress = false;
     queueRef.current = queueRef.current || [];
     queueRef.current.push({ attempts: 0, ...action });
     saveQueueToStorage();
+    console.log('🗂️ Enqueued shared-cart action:', action.type, 'queueLength=', queueRef.current.length);
     scheduleFlush(0);
   };
 
@@ -175,92 +179,151 @@ let flushInProgress = false;
     if (action.type === 'add') {
       const body = action.payload;
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          const errMsg = `HTTP ${res.status} ${res.statusText} ${txt}`;
+          console.error('performAction:add http error:', errMsg, url, body);
+          throw new Error(errMsg);
+        }
+        const json = await res.json();
+        const cart = 'data' in json ? json.data : json;
+        await updateLocalStore(cart);
+        return cart;
+      } catch (err: any) {
+        const isNetwork = err instanceof TypeError || String(err.message).includes('Failed to fetch');
+        console.error('performAction:add failed', { isNetwork, message: err?.message, action, url });
+        throw err;
+      }
     }
 
     if (action.type === 'update') {
       const { itemId, quantity } = action.payload;
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
-      const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity }) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
+      try {
+        const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quantity }) });
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          const errMsg = `HTTP ${res.status} ${res.statusText} ${txt}`;
+          console.error('performAction:update http error:', errMsg, url, { itemId, quantity });
+          throw new Error(errMsg);
+        }
+        const json = await res.json();
+        const cart = 'data' in json ? json.data : json;
+        await updateLocalStore(cart);
+        return cart;
+      } catch (err: any) {
+        const isNetwork = err instanceof TypeError || String(err.message).includes('Failed to fetch');
+        console.error('performAction:update failed', { isNetwork, message: err?.message, action, url });
+        throw err;
+      }
     }
 
     if (action.type === 'remove') {
       const { itemId } = action.payload;
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}/items/${itemId}`;
-      const res = await fetch(url, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
+      try {
+        const res = await fetch(url, { method: 'DELETE' });
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          const errMsg = `HTTP ${res.status} ${res.statusText} ${txt}`;
+          console.error('performAction:remove http error:', errMsg, url, { itemId });
+          throw new Error(errMsg);
+        }
+        const json = await res.json();
+        const cart = 'data' in json ? json.data : json;
+        await updateLocalStore(cart);
+        return cart;
+      } catch (err: any) {
+        const isNetwork = err instanceof TypeError || String(err.message).includes('Failed to fetch');
+        console.error('performAction:remove failed', { isNetwork, message: err?.message, action, url });
+        throw err;
+      }
     }
 
     if (action.type === 'clear') {
       const url = `${apiBaseUrl}/api/shared-carts/${currentTableId}`;
-      const res = await fetch(url, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const cart = 'data' in json ? json.data : json;
-      await updateLocalStore(cart);
-      return cart;
+      try {
+        const res = await fetch(url, { method: 'DELETE' });
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          const errMsg = `HTTP ${res.status} ${res.statusText} ${txt}`;
+          console.error('performAction:clear http error:', errMsg, url);
+          throw new Error(errMsg);
+        }
+        const json = await res.json();
+        const cart = 'data' in json ? json.data : json;
+        await updateLocalStore(cart);
+        return cart;
+      } catch (err: any) {
+        const isNetwork = err instanceof TypeError || String(err.message).includes('Failed to fetch');
+        console.error('performAction:clear failed', { isNetwork, message: err?.message, action, url });
+        throw err;
+      }
     }
   };
 
   const scheduleFlush = (delayMs = 500) => {
-    if (flushInProgress) return;
-    flushInProgress = true;
-    setTimeout(async () => {
-      try {
-        await flushQueue();
-      } finally {
-        flushInProgress = false;
+    try {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
       }
-    }, delayMs);
+      timerRef.current = window.setTimeout(async () => {
+        // If already running, we'll still attempt again once the current run finishes
+        try {
+          await flushQueue();
+        } catch {}
+      }, delayMs);
+    } catch {}
   };
 
   const flushQueue = async () => {
-    loadQueueFromStorage();
-    if (!queueRef.current || queueRef.current.length === 0) return;
+    if (runningRef.current) return; // avoid concurrent runs
+    runningRef.current = true;
+    try {
+      loadQueueFromStorage();
+        console.log('🗂️ Flushing shared-cart queue, length=', queueRef.current.length);
+      if (!queueRef.current || queueRef.current.length === 0) return;
 
-    // Process sequentially
-    for (let i = 0; i < queueRef.current.length; ) {
-      const action = queueRef.current[i];
-      try {
-        await performAction(action);
-        // remove from queue
-        queueRef.current.splice(i, 1);
-        saveQueueToStorage();
-      } catch (err) {
-        action.attempts = (action.attempts || 0) + 1;
-        // If too many attempts, drop and log
-        if ((action.attempts || 0) >= 5) {
-          console.warn('Dropping pending shared-cart action after retries', action);
+      // Process sequentially
+      for (let i = 0; i < queueRef.current.length; ) {
+        const action = queueRef.current[i];
+        try {
+            console.debug('Flushing action', action);
+            await performAction(action);
+          // remove from queue
           queueRef.current.splice(i, 1);
           saveQueueToStorage();
-          continue;
+          try { window.dispatchEvent(new CustomEvent('sharedCart:queueChanged', { detail: { length: queueRef.current.length } })); } catch {}
+        } catch (err) {
+          action.attempts = (action.attempts || 0) + 1;
+          // If too many attempts, drop and log
+          if ((action.attempts || 0) >= 5) {
+            console.warn('Dropping pending shared-cart action after retries', action);
+            queueRef.current.splice(i, 1);
+            saveQueueToStorage();
+            try { window.dispatchEvent(new CustomEvent('sharedCart:queueChanged', { detail: { length: queueRef.current.length } })); } catch {}
+            continue;
+          }
+          // exponential backoff for next retry
+          const backoff = Math.min(30000, 500 * Math.pow(2, (action.attempts || 1)));
+          // schedule another flush later and move to next item
+          scheduleFlush(backoff);
+          i++;
         }
-        // exponential backoff for next retry
-        const backoff = Math.min(30000, 500 * Math.pow(2, (action.attempts || 1)));
-        // move to next index but schedule another flush later
-        scheduleFlush(backoff);
-        i++;
       }
+    } finally {
+      runningRef.current = false;
     }
   };
+
+  const getPendingCount = () => (queueRef.current ? queueRef.current.length : 0);
 
   // Initialize WebSocket connection. Use provided tableId, or fallback to module ref or localStorage.
   useEffect(() => {

@@ -57,7 +57,30 @@ export function Header() {
   
   // Activate shared cart using the table identifier (server expects tableId)
   // Keep sessionId stored for other uses (auth/header) but pass tableId to the hook.
-  useSharedCart(isSessionActive && tableId ? tableId : undefined);
+  const shared = useSharedCart(isSessionActive && tableId ? tableId : undefined);
+  const [pendingCount, setPendingCount] = useState<number>(() => {
+    try {
+      const raw = localStorage.getItem('pendingSharedCartActions');
+      if (!raw) return 0;
+      const parsed = JSON.parse(raw) as any[];
+      return Array.isArray(parsed) ? parsed.length : 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    const handler = (ev: any) => {
+      try {
+        const len = (ev?.detail?.length ?? (shared && typeof shared.getPendingCount === 'function' ? shared.getPendingCount() : 0));
+        setPendingCount(Number(len) || 0);
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('sharedCart:queueChanged', handler as EventListener);
+    return () => window.removeEventListener('sharedCart:queueChanged', handler as EventListener);
+  }, [shared]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -323,6 +346,11 @@ export function Header() {
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full header-badge text-[10px] font-medium">
                     {totalItems}
+                  </span>
+                )}
+                {pendingCount > 0 && (
+                  <span title={`${pendingCount} pending sync`} className="absolute -bottom-1 -right-1 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-yellow-500 text-[10px] font-medium text-black">
+                    {pendingCount}
                   </span>
                 )}
               </Button>
