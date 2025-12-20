@@ -11,7 +11,8 @@
     "next": "Next",
     "previous": "Previous",
     "submit": "Submit",
-    "close": "Close"
+    "close": "Close",
+    "quantity": "Quantity"
   },
   "navigation": {
     "home": "Home",

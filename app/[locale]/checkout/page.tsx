@@ -382,6 +382,14 @@ export default function CheckoutPage() {
 
   // Empty cart experience
   if (items.length === 0) {
+    // If we just placed an order we set `pendingClearCart` in localStorage
+    // to indicate the confirmation page should process the pending clear.
+    // During that short transition we must not render the empty-cart UI
+    // (which can feel like a redirect). If `pendingClearCart` exists,
+    // return null to allow router.replace to proceed to confirmation.
+    const pending = typeof window !== 'undefined' ? localStorage.getItem('pendingClearCart') : null;
+    if (pending) return null;
+
     return (
       <AppShell>
         <Container maxWidth="md" sx={{ py: 8 }}>
