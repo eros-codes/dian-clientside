@@ -484,12 +484,14 @@ export default function CheckoutPage() {
           console.warn('Failed to clear shared cart on server after order', e);
         }
         try {
+          // ensure drawer closed and local store cleared immediately
+          try { useCartStore.getState().closeCart(); } catch {}
           useCartStore.getState().clearCart();
         } catch (e) {
           // ignore
         }
-        // پرداخت در صندوق - مستقیم به صفحه تایید برو
-        router.push(`/orders/confirmation?orderId=${createdOrder.id}`);
+        // پرداخت در صندوق - مستقیم به صفحه تایید برو (replace to avoid back -> empty cart)
+        router.replace(`/orders/confirmation?orderId=${createdOrder.id}`);
       } else {
         const reason = encodeURIComponent('ثبت سفارش ناموفق بود. لطفاً دوباره تلاش کنید.');
         router.push(`/orders/failure?reason=${reason}`);
