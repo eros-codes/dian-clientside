@@ -132,9 +132,7 @@ async function apiRequest<T>(
 
     return payload;
   } catch (error) {
-    // log the underlying error to help debugging (network issues, CORS, DNS, etc.)
-    // eslint-disable-next-line no-console
-    console.error('apiRequest failed', { url, options, error });
+    // underlying error occurred (network/CORS/etc.) — no logging in production build
     if (error instanceof ApiError) {
       if (error.status === 401 || error.status === 403) {
         try {

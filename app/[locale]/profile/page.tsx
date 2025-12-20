@@ -49,11 +49,10 @@ export default function ProfilePage() {
   // Debug: log user and localStorage whenever user changes to trace IBAN visibility
   useEffect(() => {
     try {
-      console.log('ProfilePage: current store user=', user);
+      // debug logging removed
       const ls = typeof window !== 'undefined' ? localStorage.getItem('userData') : null;
-      console.log('ProfilePage: localStorage.userData=', ls);
     } catch (e) {
-      console.warn('ProfilePage: logging failed', e);
+      // logging failed — ignore
     }
   }, [user]);
 
@@ -76,20 +75,17 @@ export default function ProfilePage() {
     try {
       // call users update API
       const payload = { iban: data.iban };
-      console.log('IBAN update: payload=', payload);
 
       // Use self-update endpoint; backend allows updating own IBAN without admin role
       let updatedUser: any = await usersApi.updateMe(payload);
-      console.log('IBAN update: updateMe response=', updatedUser);
 
       // Fallback: some servers may return empty body on PATCH success
       if (!updatedUser || typeof updatedUser !== 'object' || !updatedUser.id) {
         try {
           const fresh = await usersApi.getMe();
           updatedUser = fresh;
-          console.log('IBAN update: fallback fetched user via /users/me =', fresh);
         } catch (e) {
-          console.warn('IBAN update: failed to fetch fallback user after PATCH');
+          // fallback fetch failed
         }
       }
 
@@ -99,16 +95,15 @@ export default function ProfilePage() {
         try {
           localStorage.setItem('userData', JSON.stringify(updatedUser));
         } catch (e) {
-          console.warn('Failed to write userData to localStorage after IBAN update', e);
+          // ignore localStorage write errors
         }
       } else {
-        console.warn('IBAN update: server did not return a valid user object');
         throw new Error('پاسخ نامعتبر از سرور');
       }
       resetIban();
       setShowIbanForm(false);
     } catch (err) {
-      console.error('خطا در ذخیره شماره شبا:', err);
+      // error saving IBAN
     }
   };
 
@@ -127,7 +122,7 @@ export default function ProfilePage() {
       reset();
       setShowPasswordForm(false);
     } catch (error) {
-      console.error('خطا در تغییر رمز عبور:', error);
+      // error changing password
     }
   };
 

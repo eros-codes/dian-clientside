@@ -158,15 +158,12 @@ function VerifyInner() {
           const userData = pending ? JSON.parse(pending) : null;
           if (userData?.email && userData?.password) {
             try {
-              console.debug('[auto-login] attempting authApi.login with pendingRegistration', { email: userData.email });
               const loginRes = await authApi.login({ email: userData.email, password: userData.password });
-              console.debug('[auto-login] raw loginRes', loginRes);
               const responseData = (loginRes as any).data || loginRes;
-              console.debug('[auto-login] normalized responseData', responseData);
               const access = responseData?.accessToken || responseData?.access_token || responseData?.token || responseData?.access;
               const refresh = responseData?.refreshToken || responseData?.refresh_token || null;
               if (access) {
-                console.debug('[auto-login] got access token, setting tokens');
+                // got access token, setting tokens
                 setTokens(access, refresh || '');
                 // setAccessToken is also used internally by the api module, setTokens will call it via auth store
                 setAccessToken(access);
@@ -186,7 +183,7 @@ function VerifyInner() {
                 }
               }
             } catch (e) {
-              console.warn('Auto-login after verify failed', e);
+              // auto-login failed
             }
           }
         } catch (e) {

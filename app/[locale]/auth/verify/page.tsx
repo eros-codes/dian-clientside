@@ -136,7 +136,7 @@ export default function VerifyPage() {
           // reuse shared login success flow so behavior matches login button
           await applyLoginSuccess(payload, setUser, setTokens);
         } catch (e) {
-          console.warn('Auto-login after verify failed', e);
+          // auto-login failed
         }
         // redirect to home
         window.location.href = '/';
@@ -190,7 +190,7 @@ export default function VerifyPage() {
         try {
           await applyLoginSuccess(payload, setUser, setTokens);
         } catch (e) {
-          console.warn('Auto-login after verify failed', e);
+          // auto-login failed
         }
         window.location.href = '/';
       } else if (payload?.success || result.success) {

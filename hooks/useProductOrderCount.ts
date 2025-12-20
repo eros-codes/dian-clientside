@@ -30,7 +30,7 @@ export function useProductOrderCount(productId: string) {
         
         setCount(totalCount);
       } catch (error) {
-        console.error('Failed to fetch product order count:', error);
+        // failed to fetch order count — silently ignore in client
       } finally {
         setLoading(false);
       }

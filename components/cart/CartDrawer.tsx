@@ -89,7 +89,7 @@ export function CartDrawer() {
                       await shared.fetchCart();
                     }
                   } catch (e) {
-                    console.warn('Failed to fetch shared cart before opening cart page', e);
+                    // fetchCart failed (shared cart removed) — ignore
                   }
                   router.push('/cart');
                 }}
@@ -106,7 +106,7 @@ export function CartDrawer() {
                       await shared.fetchCart();
                     }
                   } catch (e) {
-                    console.warn('Failed to fetch shared cart before checkout', e);
+                    // fetchCart failed (shared cart removed) — ignore
                   }
                   router.push('/checkout');
                 }}

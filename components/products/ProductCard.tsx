@@ -45,7 +45,7 @@ function resolveImageUrl(img: string | { url: string }): string | undefined {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  console.log('🔥 ProductCard LOADED for:', product.name);
+  
   
   const t = useTranslations();
   const syncedCart = useSyncedCart();
@@ -56,11 +56,10 @@ export function ProductCard({ product }: ProductCardProps) {
   // Get current item count from cart
   const currentItemCount = syncedCart.items.find(item => item.productId === product.id)?.quantity || 0;
 
-  console.log('🛒 Cart items:', syncedCart.items.length, 'Current count for', product.name, '=', currentItemCount);
+  
 
   // Update local count when cart changes
   React.useEffect(() => {
-    console.log('⚡ Updating orderCount to:', currentItemCount);
     setOrderCount(currentItemCount);
   }, [currentItemCount]);
   const bounceOnce = keyframes`

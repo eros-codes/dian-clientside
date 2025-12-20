@@ -31,29 +31,13 @@ export function useSyncedCart() {
   };
 
   const removeItem = async (itemId: string) => {
+    // Local-only remove (server shared cart removed)
     cartStore.removeItem(itemId);
-
-    if (isSessionActive && sessionId && hasSharedCart) {
-      try {
-        await sharedCart.removeItem(itemId);
-        console.log('✅ Item removed from server:', itemId);
-      } catch (error) {
-        console.error('❌ Failed to remove item from server:', error);
-      }
-    }
   };
 
   const updateQuantity = async (itemId: string, quantity: number) => {
+    // Local-only quantity update
     cartStore.updateQuantity(itemId, quantity);
-
-    if (isSessionActive && sessionId && hasSharedCart) {
-      try {
-        await sharedCart.updateQuantity(itemId, quantity);
-        console.log('✅ Quantity synced to server:', itemId, quantity);
-      } catch (error) {
-        console.error('❌ Failed to update quantity on server:', error);
-      }
-    }
   };
 
   return {

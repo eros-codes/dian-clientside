@@ -202,7 +202,7 @@ export default function CheckoutPage() {
 
         setActiveStep(0);
       } catch (error) {
-        console.error('Error cancelling pending order:', error);
+        // ignore cancel pending order errors
       }
     };
 
@@ -435,7 +435,7 @@ export default function CheckoutPage() {
         try {
           localStorage.setItem('pendingOrder', JSON.stringify(orderData));
         } catch (storageError) {
-          console.warn('ثبت سفارش در حافظه محلی ناموفق بود', storageError);
+          // ignore storage errors
         }
 
         try {
@@ -459,7 +459,6 @@ export default function CheckoutPage() {
             router.push(`/orders/failure?reason=${reason}`);
           }
         } catch (paymentError) {
-          console.error('خطا در ایجاد درگاه پرداخت:', paymentError);
           const reason = encodeURIComponent('خطا در اتصال به درگاه پرداخت');
           router.push(`/orders/failure?reason=${reason}`);
         }
@@ -481,7 +480,7 @@ export default function CheckoutPage() {
             await shared.clearCart();
           }
         } catch (e) {
-          console.warn('Failed to clear shared cart on server after order', e);
+          // ignore shared cart clear failures
         }
         try {
           // ensure drawer closed and local store cleared immediately
@@ -497,7 +496,7 @@ export default function CheckoutPage() {
         router.push(`/orders/failure?reason=${reason}`);
       }
     } catch (error) {
-      console.error('خطا در ثبت سفارش:', error);
+      // error creating order
       // سایر خطاها: هدایت به صفحه ناموفق
       const msg = (() => {
         const m = (error as any)?.message || 'ثبت سفارش ناموفق بود.';
