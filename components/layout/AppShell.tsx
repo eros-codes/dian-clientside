@@ -9,12 +9,15 @@ import { Toaster } from '@/components/ui/toaster';
 import { MenuLanding } from '@/components/menu/MenuLanding';
 import { useMenuStore } from '@/stores/menuStore';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { useCartHydration } from '@/hooks/useCartHydration';
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
+  // Ensure cart hydration and session-expiry watcher runs app-wide
+  useCartHydration();
   const { menuType, hasHydrated, setMenuType } = useMenuStore();
 
   if (!hasHydrated) {
