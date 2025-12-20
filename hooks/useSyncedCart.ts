@@ -34,14 +34,7 @@ export function useSyncedCart() {
     // If there's an active session AND sharedCart is available, sync to server
     if (isSessionActive && sessionId && hasSharedCart) {
       try {
-        await sharedCart.addItem(
-          product.id,
-          quantity,
-          product.price,
-          product.price,
-          0,
-          options
-        );
+        await sharedCart.addItem(product, quantity, options);
         console.log('✅ Item synced to server:', product.id);
       } catch (error) {
         console.error('❌ Failed to sync item to server:', error);
