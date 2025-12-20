@@ -24,6 +24,9 @@ import { useCartStore } from '@/stores/cartStore';
 import { useSharedCart } from '@/hooks/useSharedCart';
 import { useSyncedCart } from '@/hooks/useSyncedCart';
 import { useCartHydration } from '@/hooks/useCartHydration';
+import { useCurrentTable } from '@/hooks/useCurrentTable';
+import { toast } from 'sonner';
+import { ProductOptionsModal } from '@/components/product/ProductOptionsModal';
 import ClientOnly from '@/components/ui/ClientOnly';
 import { truncateText } from '@/lib/utils';
 
@@ -70,13 +73,42 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const isProductAvailable = product.isAvailable !== false && product.isActive;
   const addDisabled = !isProductAvailable || !isHydrated;
+  const { isSessionActive } = useCurrentTable();
+
+  const optionsList = React.useMemo(() => product.options ?? [], [product.options]);
+  const hasSelectableOptions = React.useMemo(
+    () => optionsList.some((opt) => opt.isAvailable),
+    [optionsList],
+  );
+
+  const [isOptionsOpen, setIsOptionsOpen] = React.useState(false);
+  const [pendingQuantity, setPendingQuantity] = React.useState<number>(1);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (addDisabled) return;
+    // require table session for adding (same UX as ProductCardNew)
+    if (!isSessionActive) {
+      toast.error('لطفاً ابتدا شماره میز را با اسکن QR تعیین کنید');
+      return;
+    }
+
+    if (hasSelectableOptions) {
+      setPendingQuantity(1);
+      setIsOptionsOpen(true);
+      return;
+    }
+
     syncedCart.addItem(product);
     setCartAnim(true);
     setTimeout(() => setCartAnim(false), 320);
+  };
+
+  const handleConfirmOptions = (selectedOptions: any[]) => {
+    if (!isHydrated || !isProductAvailable || !isSessionActive) return;
+    syncedCart.addItem(product, pendingQuantity, selectedOptions);
+    setIsOptionsOpen(false);
+    toast.success(`${product.name} به سبد خرید افزوده شد`);
   };
 
   const getProductColor = (id: string) => {
@@ -317,6 +349,15 @@ export function ProductCard({ product }: ProductCardProps) {
             </Button>
           </ClientOnly>
         </CardActions>
+      )}
+
+      {optionsList.length > 0 && (
+        <ProductOptionsModal
+          product={product}
+          open={isOptionsOpen}
+          onClose={() => setIsOptionsOpen(false)}
+          onConfirm={handleConfirmOptions}
+        />
       )}
     </Card>
   );
