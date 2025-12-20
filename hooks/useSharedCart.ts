@@ -711,6 +711,7 @@ const timerRef: { current: number | null } = { current: null };
     removeItem: removeItemAsync,
     fetchCart,
     clearCart: clearCartAsync,
+    getPendingCount,
     isConnected: socketRef.current?.connected || false,
   };
 };
