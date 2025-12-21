@@ -62,12 +62,16 @@ export function useSyncedCart() {
 
             const keyFor = (it: any) => {
               const opts = Array.isArray(it.options) ? it.options.map((o: any) => `${o.id || o.name}:${o.value ?? ''}`).sort().join('|') : '';
-              return `${it.productId ?? it.product?.id ?? it.product?.sku || it.product?.name}:${opts}`;
+              const idPart = (it.productId ?? it.product?.id ?? it.product?.sku) || it.product?.name || '';
+              return `${idPart}:${opts}`;
             };
 
             const pushToMap = (it: any) => {
               const key = keyFor(it);
-              if (!mergedMap[key]) mergedMap[key] = { product: it.product ?? it.productId ? { id: it.productId, name: it.name } : it.product, quantity: 0, options: it.options ?? [] };
+              if (!mergedMap[key]) {
+                const productObj = it.product ?? (it.productId ? { id: it.productId, name: it.name } : undefined);
+                mergedMap[key] = { product: productObj, quantity: 0, options: it.options ?? [] };
+              }
               mergedMap[key].quantity += Number(it.quantity ?? 1) || 0;
             };
 
