@@ -154,8 +154,7 @@ function run(dryRun = true) {
     const afterLines = p.after.split(/\r?\n/);
     for (let i = 0; i < Math.min(beforeLines.length, afterLines.length); i++) {
       if (beforeLines[i] !== afterLines[i]) {
-        console.log(' -', beforeLines[i]);
-        console.log(' +', afterLines[i]);
+        // console output intentionally removed
       }
     }
   }
@@ -168,7 +167,6 @@ function run(dryRun = true) {
     for (const p of proposals) {
       fs.writeFileSync(p.file, p.after, 'utf8');
     }
-    console.log('\nApplied changes to', proposals.length, 'files.');
   }
 
   return { proposals, unknown: Array.from(unknownColors) };
