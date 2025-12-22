@@ -9,7 +9,7 @@ import { footerSettingsApi } from '@/lib/api-real';
 type FooterSetting = { id: number; key: string; title: string; url?: string | null };
 
 export function Footer() {
-  const { data: settings = [] } = useFooterSettings();
+  const { data: settings = [] as FooterSetting[] } = useFooterSettings();
   const hiddenKeys = new Set(['fee', 'swarm', 'tax', 'bulk_discount']);
 
   const renderIcon = (k: string) => {
