@@ -44,6 +44,12 @@ export function useOrderSocket() {
       } catch (e) {}
     });
 
+    socket.on('bannersUpdated', (payload: any) => {
+      try {
+        queryClient.invalidateQueries({ queryKey: ['banners'] });
+      } catch (e) {}
+    });
+
     socket.on('disconnect', () => {
       // console.log('order socket disconnected');
     });

@@ -4,7 +4,6 @@ import { Container, Typography, Box, Card, CardContent } from '@mui/material';
 import colors, { hexToRgba, brandGradients } from '../../client-colors';
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
-import { bannersApi } from '@/lib/api-real';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
@@ -12,36 +11,14 @@ import { ProductCardNew as ProductCard } from '@/components/products/ProductCard
 import { LoadingState } from '@/components/ui/LoadingState';
 import { FadeTransition } from '@/components/ui/FadeTransition';
 import { HomeCategoriesSkeleton, HomeFeaturedSkeleton } from '@/components/ui/HomeSkeletons';
-import { useProducts, useCategories, usePopularProducts } from '@/hooks/useApi';
+import { useProducts, useCategories, usePopularProducts, useBanners } from '@/hooks/useApi';
 import { Product } from '@/types';
 import { useCurrentTable } from '@/hooks/useCurrentTable';
 import { resolveAssetUrl } from '@/lib/api';
 import { MenuLanding } from '@/components/menu/MenuLanding';
 import { MenuType, useMenuStore } from '@/stores/menuStore';
-import { useQuery } from '@tanstack/react-query';
 // BannerSlider is client-only and uses Swiper; load dynamically
 const BannerSlider = dynamic(() => import('@/components/home/BannerSlider'), { ssr: false });
-
-function useBanners() {
-  const { data: rawBanners = [] } = useQuery({
-    queryKey: ['banners'],
-    queryFn: async () => {
-      const data = await bannersApi.getBanners();
-      return Array.isArray(data) ? data : [];
-    },
-    // Poll every 5 seconds so admin banner changes propagate to all clients fast
-    staleTime: 0,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: false,
-    retry: 2,
-  });
-
-  return useMemo(() => {
-    return rawBanners
-      .filter((b: any) => b.isActive && b.imageUrl)
-      .sort((a: any, z: any) => (a.order ?? 0) - (z.order ?? 0));
-  }, [rawBanners]);
-}
 
 export default function HomePage() {
   const t = useTranslations();
@@ -68,8 +45,6 @@ export default function HomePage() {
     const index = Math.abs(hash) % gradientList.length;
     return gradientList[index];
   };
-
-  const banners = useBanners();
 
   const filteredCategories = useMemo(() => {
     if (!menuType) return [];
@@ -100,11 +75,6 @@ export default function HomePage() {
   return (
     <AppShell>
   <Container maxWidth="xl" sx={{ py: 1 }}>
-        {/* Site Banners (from admin) - replace hero with slider */}
-        <Box sx={{ mb: 0.5 }}>
-          <BannerSlider banners={banners ?? []} />
-        </Box>
-
         {/* Categories */}
         <Box sx={{ mb: 8 }}>
           <Typography 

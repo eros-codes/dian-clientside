@@ -11,6 +11,7 @@ import { useMenuStore } from '@/stores/menuStore';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useCartHydration } from '@/hooks/useCartHydration';
 import { useOrderSocket } from '@/hooks/useOrderSocket';
+import { BannerSection } from '../home/BannerSection';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -34,18 +35,19 @@ export function AppShell({ children }: AppShellProps) {
     );
   }
 
-  if (!menuType) {
-    return <MenuLanding onSelect={setMenuType} />;
-  }
-
   return (
     // Use the centralized page background variable so changing `colors.pageBackground`
     // updates the visible app shell. Tailwind arbitrary value uses the CSS var.
     <div className="flex flex-col min-h-screen direction-rtl overflow-x-hidden bg-[var(--page-background)]" suppressHydrationWarning>
       <Header />
-      <main className="flex-1 flex flex-col pt-16 pb-4" suppressHydrationWarning>
-        {children}
-      </main>
+      <BannerSection />
+      {!menuType ? (
+        <MenuLanding onSelect={setMenuType} />
+      ) : (
+        <main className="flex-1 flex flex-col pt-16 pb-4" suppressHydrationWarning>
+          {children}
+        </main>
+      )}
       <Footer />
       <CartDrawer />
       <FloatingCartButton />

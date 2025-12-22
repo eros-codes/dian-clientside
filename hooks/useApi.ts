@@ -10,13 +10,14 @@ import {
   setAccessToken,
   ApiError,
 } from "@/lib/api";
-import { footerSettingsApi } from '@/lib/api-real';
+import { footerSettingsApi, bannersApi } from '@/lib/api-real';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
 import { ErrorHelper } from '@/lib/error-helper';
 import { useTranslations } from 'next-intl';
 import { getDefaultUserId } from "@/lib/utils";
 import { toast } from "sonner";
+import { useMemo } from "react";
 
 // Products hooks
 export function useProducts(
@@ -261,6 +262,28 @@ export function useChangePassword() {
       toast.error(error.message || 'خطا در تغییر رمز عبور');
     },
   });
+}
+
+// Banners hook
+export function useBanners() {
+  const { data: rawBanners = [] } = useQuery({
+    queryKey: ['banners'],
+    queryFn: async () => {
+      const data = await bannersApi.getBanners();
+      return Array.isArray(data) ? data : [];
+    },
+    // Poll every 5 seconds so admin banner changes propagate to all clients fast
+    staleTime: 0,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
+    retry: 2,
+  });
+
+  return useMemo(() => {
+    return rawBanners
+      .filter((b: any) => b.isActive && b.imageUrl)
+      .sort((a: any, z: any) => (a.order ?? 0) - (z.order ?? 0));
+  }, [rawBanners]);
 }
 
 export async function applyLoginSuccess(payload: any, setUser: (u: any) => void, setTokens: (a?: string|null, r?: string|null) => void) {
