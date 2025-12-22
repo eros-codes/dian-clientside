@@ -3,7 +3,6 @@ import {
   productsApi,
   categoriesApi,
   ordersApi,
-  footerSettingsApi,
   usersApi,
   inventoryApi,
   returnsApi,
@@ -11,6 +10,7 @@ import {
   setAccessToken,
   ApiError,
 } from "@/lib/api";
+import { footerSettingsApi } from '@/lib/api-real';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
 import { ErrorHelper } from '@/lib/error-helper';
