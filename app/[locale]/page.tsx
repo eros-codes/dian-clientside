@@ -18,32 +18,29 @@ import { useCurrentTable } from '@/hooks/useCurrentTable';
 import { resolveAssetUrl } from '@/lib/api';
 import { MenuLanding } from '@/components/menu/MenuLanding';
 import { MenuType, useMenuStore } from '@/stores/menuStore';
+import { useQuery } from '@tanstack/react-query';
 // BannerSlider is client-only and uses Swiper; load dynamically
 const BannerSlider = dynamic(() => import('@/components/home/BannerSlider'), { ssr: false });
 
 function useBanners() {
-  const [banners, setBanners] = useState<any[] | null>(null);
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await bannersApi.getBanners();
-        if (!mounted) return;
-        // ensure array and only active banners, sorted by order asc
-        const arr = Array.isArray(data) ? data : [];
-        // include only active banners that have an imageUrl
-        const active = arr
-          .filter((b: any) => b.isActive && b.imageUrl)
-          .sort((a: any, z: any) => (a.order ?? 0) - (z.order ?? 0));
-        setBanners(active);
-      } catch (e) {
-        // errors intentionally not logged to console
-        setBanners([]);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-  return banners;
+  const { data: rawBanners = [] } = useQuery({
+    queryKey: ['banners'],
+    queryFn: async () => {
+      const data = await bannersApi.getBanners();
+      return Array.isArray(data) ? data : [];
+    },
+    // Poll every 5 seconds so admin banner changes propagate to all clients fast
+    staleTime: 0,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: false,
+    retry: 2,
+  });
+
+  return useMemo(() => {
+    return rawBanners
+      .filter((b: any) => b.isActive && b.imageUrl)
+      .sort((a: any, z: any) => (a.order ?? 0) - (z.order ?? 0));
+  }, [rawBanners]);
 }
 
 export default function HomePage() {
