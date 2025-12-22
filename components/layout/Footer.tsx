@@ -71,8 +71,8 @@ export function Footer() {
               }}
             >
               {settings
-                .filter((s) => !hiddenKeys.has(s.key))
-                .map((s) => {
+                .filter((s: FooterSetting) => !hiddenKeys.has(s.key))
+                .map((s: FooterSetting) => {
                   const isPhone = s.key === 'phone';
                   const phoneHref = isPhone ? makeTelHref(s.url || s.title) : '';
                   const isLink = isPhone ? Boolean(phoneHref) : Boolean(s.url);
