@@ -8,8 +8,9 @@
   /* موقعیت ظرف برای قرارگیری نسبی عناصر داخل */
   position: relative;
   /* فاصله عمودی کوچک بالای اسلایدر */
+  /* ensure banners sit below the sticky header */
+  margin-top: calc(var(--header-height, 64px) + 8px);
   padding: 0.02rem 0; /* معیار: میزان فاصله از هدر */
-  margin-top: -24px; /* معیار: کشیدن اسلایدر به بالا برای حذف فاصله */
   /* اجازه می‌دهد اسلایدهای کناری بیرون ظرف دیده شوند (برای اورلپ) */
   overflow: visible; /* معیار: باید visible باشد اگر اورلپ می‌خواهیم */
   box-shadow: 0 10px 30px var(--shadow-3);

@@ -86,44 +86,54 @@ export default function AdminBannersPage() {
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">مدیریت بنرها</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-2 mb-6">
-  <input {...register('title')} placeholder="عنوان (اختیاری)" className="border p-2" />
-  <input {...register('caption')} placeholder="توضیح کوتاه (اختیاری)" className="border p-2" />
-        <input type="number" {...register('order')} placeholder="ترتیب" className="border p-2" />
-        <label className="flex items-center gap-2">
-          <input type="checkbox" {...register('isActive')} /> فعال
-        </label>
-        <input type="file" {...register('file')} onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) {
-            setPreview(URL.createObjectURL(f));
-            setRemoveImage(false);
-          } else {
-            setPreview(null);
-          }
-        }} />
-        {preview && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="preview" className="h-24 w-40 object-cover rounded mt-2" />
-        )}
-        {editingId && !preview && (
-          banners.find(b => b.id === editingId)?.imageUrl ? (
-            <div className="mt-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={banners.find(b => b.id === editingId)?.imageUrl} alt="current" className="h-24 w-40 object-cover rounded" />
-              <label className="flex items-center gap-2 mt-1">
-                <input type="checkbox" checked={removeImage} onChange={(e) => setRemoveImage(e.target.checked)} /> حذف تصویر
-              </label>
-            </div>
-          ) : null
-        )}
-        <div className="flex items-center gap-2">
-            <button type="submit" className="header-btn-primary px-4 py-2 rounded" disabled={loading}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input {...register('title')} placeholder="عنوان (اختیاری)" className="border p-2 w-full" />
+          <input {...register('caption')} placeholder="توضیح کوتاه (اختیاری)" className="border p-2 w-full" />
+
+          <input type="number" {...register('order')} placeholder="ترتیب" className="border p-2 w-full" />
+
+          <label className="flex items-center gap-2">
+            <input type="checkbox" {...register('isActive')} /> فعال
+          </label>
+
+          <div className="col-span-1 md:col-span-2">
+            <input type="file" {...register('file')} className="w-full" onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) {
+                setPreview(URL.createObjectURL(f));
+                setRemoveImage(false);
+              } else {
+                setPreview(null);
+              }
+            }} />
+
+            {preview && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="preview" className="w-full h-auto max-h-48 object-cover rounded mt-2" />
+            )}
+
+            {editingId && !preview && (
+              banners.find(b => b.id === editingId)?.imageUrl ? (
+                <div className="mt-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={banners.find(b => b.id === editingId)?.imageUrl} alt="current" className="w-full h-auto max-h-48 object-cover rounded" />
+                  <label className="flex items-center gap-2 mt-1">
+                    <input type="checkbox" checked={removeImage} onChange={(e) => setRemoveImage(e.target.checked)} /> حذف تصویر
+                  </label>
+                </div>
+              ) : null
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+          <button type="submit" className="header-btn-primary px-4 py-2 rounded w-full sm:w-auto" disabled={loading}>
             {editingId ? (loading ? 'در حال بروزرسانی...' : 'بروزرسانی') : (loading ? 'در حال ایجاد...' : 'ایجاد')}
           </button>
           {editingId && (
             <button
               type="button"
-              className="px-3 py-2 border rounded"
+              className="px-3 py-2 border rounded w-full sm:w-auto"
               onClick={() => { setEditingId(null); reset(); }}
               disabled={loading}
             >انصراف</button>

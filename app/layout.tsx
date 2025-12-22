@@ -41,6 +41,7 @@ export default async function RootLayout({
   --header-text: ${colors.gray800};
   --header-btn-bg: ${colors.primary};
   --header-btn-color: ${colors.white};
+  --header-height: 64px;
   --footer-bg: ${colors.headerFooterBg};
   --footer-text: ${colors.gray700};
   --header-active-bg: ${colors.badgeBlueBg};
