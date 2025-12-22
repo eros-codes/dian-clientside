@@ -219,6 +219,12 @@ export default function BannerSlider({ banners }: { banners: Banner[] }) {
               sw.slideTo(initialSlide, 0);
               // Force update to ensure proper positioning
               sw.update();
+              // Start autoplay automatically on all environments (include touch/mobile)
+              try {
+                if (shouldLoop) {
+                  try { sw.autoplay?.start(); setAutoplayStarted(true); } catch (e) { /* ignore */ }
+                }
+              } catch {}
               // Apply stacking order so center slide stays above others
               try { updateSlideStack(sw); } catch (err) { /* ignore */ }
             }, 150);
@@ -229,6 +235,12 @@ export default function BannerSlider({ banners }: { banners: Banner[] }) {
             setTimeout(() => { 
               sw.slideTo(initialSlide, 0);
               sw.update();
+              // also start autoplay on init for all devices
+              try {
+                if (shouldLoop) {
+                  try { sw.autoplay?.start(); setAutoplayStarted(true); } catch (e) { /* ignore */ }
+                }
+              } catch {}
               try { updateSlideStack(sw); } catch (err) { /* ignore */ }
             }, 150); 
           } catch (e) { /* ignore */ }
