@@ -131,7 +131,7 @@
 }
 
 /* single-card variant styling */
-.singleCard { /* استایل حالت تک بنر: حداکثر عرض کارت وقتی فقط یک بنر داریم */ max-width: 1100px; margin: 0 auto; }
+.singleCard { /* استایل حالت تک بنر: حداکثر عرض کارت وقتی فقط یک بنر داریم */ max-width: 1100px; margin: 0 auto; margin-top: calc(var(--header-height, 64px) + 4px); margin-bottom: 12px; position: relative; display: flex; justify-content: center; align-items: center; padding: 0 12px; }
 
 .imageWrap {
   /* ظرف تصویر داخل کارت: تصویر کل کارت را پر می‌کند */
@@ -269,9 +269,10 @@
 .wrapper.singleBanner {
   box-shadow: none !important;
   background: none !important;
-  margin-top: 0;
+  /* keep the same header gap as multi-banner mode */
+  margin-top: calc(var(--header-height, 64px) + 4px) !important;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .singleCard .card {
