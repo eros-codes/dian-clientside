@@ -3,6 +3,7 @@ import {
   productsApi,
   categoriesApi,
   ordersApi,
+  footerSettingsApi,
   usersApi,
   inventoryApi,
   returnsApi,
@@ -35,7 +36,11 @@ export function useProducts(
     enabled: options?.enabled ?? true,
     retry: 2,
     retryDelay: 1000,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // Treat products as stale and poll frequently so admin-driven
+    // price/discount/tax changes propagate to clients fast.
+    staleTime: 0,
+    refetchInterval: 5 * 1000,
+    refetchIntervalInBackground: false,
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
@@ -61,7 +66,10 @@ export function useCategories() {
     queryFn: () => categoriesApi.getCategories(),
     retry: 2,
     retryDelay: 1000,
-    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    // Categories may affect product pricing/discounts; poll frequently.
+    staleTime: 0,
+    refetchInterval: 5 * 1000,
+    refetchIntervalInBackground: false,
     gcTime: 20 * 60 * 1000, // 20 minutes
   });
 }
@@ -131,7 +139,12 @@ export function useOrders(params?: {
     queryKey,
     queryFn: () => ordersApi.getOrders(stableParams),
     retry: 1,
-    staleTime: 5 * 60 * 1000,
+    // Make orders refresh frequently so client sees admin changes quickly.
+    // Poll every 5 seconds and treat data as stale immediately so refetchInterval runs.
+    refetchInterval: 5 * 1000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     gcTime: 10 * 60 * 1000,
   });
 }
@@ -141,6 +154,9 @@ export function useOrder(id: string, userId?: string) {
     queryKey: ["order", id],
     queryFn: () => ordersApi.getOrder(id),
     enabled: !!id,
+    // Keep a single order up-to-date frequently (useful for order detail pages)
+    refetchInterval: 5 * 1000,
+    refetchIntervalInBackground: true,
   });
 }
 
@@ -188,8 +204,24 @@ export function usePopularProducts(options?: { limit?: number; categoryType?: 'C
         categoryType: options?.categoryType,
       }),
     enabled: options?.enabled ?? true,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    // Popular list can change when product prices/discounts change.
+    staleTime: 0,
+    refetchInterval: 5 * 1000,
+    refetchIntervalInBackground: false,
     retry: 2,
+  });
+}
+
+// Footer / settings
+export function useFooterSettings() {
+  return useQuery({
+    queryKey: ["footerSettings"],
+    queryFn: () => footerSettingsApi.getFooterSettings(),
+    retry: 2,
+    // Poll frequently so changes to tax/fee/phone/address propagate quickly
+    staleTime: 0,
+    refetchInterval: 5 * 1000,
+    refetchIntervalInBackground: false,
   });
 }
 

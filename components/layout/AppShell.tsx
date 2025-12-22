@@ -10,6 +10,7 @@ import { MenuLanding } from '@/components/menu/MenuLanding';
 import { useMenuStore } from '@/stores/menuStore';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { useCartHydration } from '@/hooks/useCartHydration';
+import { useOrderSocket } from '@/hooks/useOrderSocket';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -18,6 +19,8 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   // Ensure cart hydration and session-expiry watcher runs app-wide
   useCartHydration();
+  // Initialize global order socket so order updates are pushed to client
+  useOrderSocket();
   const { menuType, hasHydrated, setMenuType } = useMenuStore();
 
   if (!hasHydrated) {

@@ -1,6 +1,7 @@
-'use client';
+ 'use client';
 
 import { useEffect, useState } from 'react';
+import { useFooterSettings } from '@/hooks/useApi';
 import { Box, Container, Typography, Link, Divider } from '@mui/material';
 import { FaInstagram, FaTelegram, FaMapMarkerAlt, FaPhone, FaTruck, FaRegEnvelope, FaClock } from 'react-icons/fa';
 import { footerSettingsApi } from '@/lib/api-real';
@@ -8,23 +9,8 @@ import { footerSettingsApi } from '@/lib/api-real';
 type FooterSetting = { id: number; key: string; title: string; url?: string | null };
 
 export function Footer() {
-  const [settings, setSettings] = useState<FooterSetting[]>([]);
+  const { data: settings = [] } = useFooterSettings();
   const hiddenKeys = new Set(['fee', 'swarm', 'tax', 'bulk_discount']);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const data = await footerSettingsApi.getFooterSettings();
-        if (!mounted) return;
-        const arr = Array.isArray(data) ? data : [];
-        setSettings(arr);
-      } catch (e) {
-        setSettings([]);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
 
   const renderIcon = (k: string) => {
     switch (k) {
