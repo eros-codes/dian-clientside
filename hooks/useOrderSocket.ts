@@ -22,8 +22,8 @@ export function useOrderSocket() {
       try {
         const id = payload?.orderId;
         // Invalidate orders list and single order to trigger refetch
-        queryClient.invalidateQueries(['orders']);
-        if (id) queryClient.invalidateQueries(['order', id]);
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        if (id) queryClient.invalidateQueries({ queryKey: ['order', id] });
       } catch (e) {
         // ignore
       }
@@ -32,15 +32,15 @@ export function useOrderSocket() {
     socket.on('productUpdated', (payload: { id?: string; product?: any } & any) => {
       try {
         // Invalidate product lists and specific product
-        queryClient.invalidateQueries(['products']);
-        queryClient.invalidateQueries(['products', 'popular']);
-        if (payload?.id) queryClient.invalidateQueries(['product', payload.id]);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ['products', 'popular'] });
+        if (payload?.id) queryClient.invalidateQueries({ queryKey: ['product', payload.id] });
       } catch (e) {}
     });
 
     socket.on('settingsUpdated', (payload: any) => {
       try {
-        queryClient.invalidateQueries(['footerSettings']);
+        queryClient.invalidateQueries({ queryKey: ['footerSettings'] });
       } catch (e) {}
     });
 
