@@ -16,7 +16,7 @@ export function BannerSection() {
   }
 
   return (
-    <Box sx={{ mb: 0.5, px: 0 }}>
+    <Box sx={{ mb: 0.25, px: 0 }}>
       <BannerSlider banners={banners} />
     </Box>
   );

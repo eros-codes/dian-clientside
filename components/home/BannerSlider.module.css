@@ -8,9 +8,9 @@
   /* موقعیت ظرف برای قرارگیری نسبی عناصر داخل */
   position: relative;
   /* فاصله عمودی کوچک بالای اسلایدر */
-  /* ensure banners sit below the sticky header */
-  margin-top: calc(var(--header-height, 64px) + 8px);
-  padding: 0.02rem 0; /* معیار: میزان فاصله از هدر */
+  /* ensure banners sit below the sticky header (smaller gap) */
+  margin-top: calc(var(--header-height, 64px) + 4px);
+  padding: 0 0; /* reduce vertical padding so banners are closer to header */
   /* اجازه می‌دهد اسلایدهای کناری بیرون ظرف دیده شوند (برای اورلپ) */
   overflow: visible; /* معیار: باید visible باشد اگر اورلپ می‌خواهیم */
   box-shadow: 0 10px 30px var(--shadow-3);
@@ -40,10 +40,10 @@
    This avoids duplicated loop slides or timing issues making side slides
    overlap the center when navigating/coming back from another page. */
 .swiper-slide { z-index: 10; position: relative; }
-.swiper-slide-active { z-index: 1000 !important; }
-.swiper-slide-next, .swiper-slide-prev { z-index: 500 !important; }
-.swiper-slide-prev-prev, .swiper-slide-next-next { z-index: 300 !important; }
-.swiper-slide-duplicate { z-index: 5 !important; }
+.swiper-slide-active { z-index: 2000 !important; }
+.swiper-slide-next, .swiper-slide-prev { z-index: 800 !important; }
+.swiper-slide-prev-prev, .swiper-slide-next-next { z-index: 400 !important; }
+.swiper-slide-duplicate { z-index: 50 !important; }
 
 .card { /* کارتِ داخل اسلاید: جلوگیری از مشکل backface هنگام transform */ backface-visibility: hidden; }
 
@@ -111,21 +111,12 @@
 
   /* Side cards: 75% of center height */
   .swiper-slide-next .card,
-  .swiper-slide-prev .card {
-    width: 632px;
-    height: 220px; /* smaller than 75% to emphasize center */
-    transform: translateY(18px); /* slightly lower to create depth */
-    z-index: 200;
-    opacity: 0.98;
+  .swiper-slide-active .card {
+    transform: scale(1.08) translateY(-12px);
+    box-shadow: 0 6px 18px var(--shadow-2);
+    opacity: 1;
+    z-index: 900;
   }
-
-  /* Further slides slightly smaller */
-  .swiper-slide-prev-prev .card,
-  .swiper-slide-next-next .card {
-    width: 632px;
-    height: 240px;
-    transform: translateY(18px);
-    z-index: 150;
     opacity: 0.9;
   }
 }
@@ -249,7 +240,7 @@
 @media (max-width: 640px) {
   /* موبایل: از aspect-ratio استفاده می‌کنیم؛ فقط شعاع گوشه را کمتر می‌کنیم */
   .card { border-radius: 8px; }
-  .swiper-slide-active .card { transform: scale(1.06) translateY(-6px); }
+  .swiper-slide-active .card { transform: scale(1.06) translateY(-8px); }
   .swiper-slide-next .card, .swiper-slide-prev .card { transform: scale(0.84) translateY(10px); }
 }
 
