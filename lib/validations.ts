@@ -18,7 +18,7 @@ export const categorySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   isActive: z.boolean(),
-  type: z.enum(['CAFE', 'RESTAURANT']).optional(),
+  type: z.enum(['CAFE', 'RESTAURANT', 'BREAKFAST']).optional(),
   // optional discount percent introduced to support category-level discounts
   discountPercent: z.number().optional(),
   iconId: z.string().nullable().optional(),

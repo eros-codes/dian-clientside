@@ -236,7 +236,7 @@ export const categoriesApi = {
 };
 
 // Products API
-type MenuTypeOption = 'CAFE' | 'RESTAURANT';
+type MenuTypeOption = 'CAFE' | 'RESTAURANT' | 'BREAKFAST';
 
 export const productsApi = {
   getProducts: async (params?: {

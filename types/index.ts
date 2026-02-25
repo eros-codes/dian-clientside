@@ -25,7 +25,7 @@ export interface Category {
   description?: string;
   isActive: boolean;
   discountPercent?: number;
-  type?: 'CAFE' | 'RESTAURANT';
+  type?: 'CAFE' | 'RESTAURANT' | 'BREAKFAST';
   iconId?: string | null;
   iconPath?: string | null;
   createdAt: string;

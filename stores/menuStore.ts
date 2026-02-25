@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-export type MenuType = 'CAFE' | 'RESTAURANT';
+export type MenuType = 'CAFE' | 'RESTAURANT' | 'BREAKFAST';
 
 interface MenuState {
   menuType: MenuType | null;

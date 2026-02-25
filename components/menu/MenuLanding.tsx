@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Button, Typography } from '@mui/material';
-import { Restaurant, LocalCafe } from '@mui/icons-material';
+import { Restaurant, LocalCafe, FreeBreakfast } from '@mui/icons-material';
 import colors, { hexToRgba, menuSelectionGradients } from '@/client-colors';
 import { MenuType } from '@/stores/menuStore';
 import { Footer } from '@/components/layout/Footer';
@@ -10,7 +10,7 @@ interface MenuLandingProps {
   onSelect: (type: MenuType) => void;
 }
 
-const menuOptions: Array<{ label: string; type: MenuType; gradient: string; icon: typeof Restaurant }> = [
+const menuOptions: Array<{ label: string; type: MenuType; gradient: string; icon: any }> = [
   {
     label: 'منوی رستوران',
     type: 'RESTAURANT',
@@ -22,6 +22,12 @@ const menuOptions: Array<{ label: string; type: MenuType; gradient: string; icon
     type: 'CAFE',
     gradient: menuSelectionGradients.cafe,
     icon: LocalCafe,
+  },
+  {
+    label: 'منوی صبحانه',
+    type: 'BREAKFAST',
+    gradient: menuSelectionGradients.breakfast,
+    icon: FreeBreakfast,
   },
 ];
 

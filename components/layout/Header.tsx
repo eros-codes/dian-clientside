@@ -27,6 +27,7 @@ import {
   MessageSquare,
   Coffee,
   UtensilsCrossed,
+  Sun,
 } from 'lucide-react';
 
 
@@ -239,6 +240,16 @@ export function Header() {
                           <UtensilsCrossed className="h-4 w-4 ml-1" />
                           رستوران
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setMenuType('BREAKFAST')}
+                          className={`flex-1 h-10 rounded-full text-sm transition-colors ${menuType === 'BREAKFAST' ? 'bg-[var(--header-hover-bg)]' : ''}`}
+                          style={{ color: 'var(--header-text)' }}
+                        >
+                          <Sun className="h-4 w-4 ml-1" />
+                          صبحانه
+                        </Button>
                       </div>
                     </div>
                     <nav className="flex flex-col space-y-1">
@@ -337,6 +348,16 @@ export function Header() {
                 >
                   <UtensilsCrossed className="h-3.5 w-3.5 ml-1" />
                   رستوران
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMenuType('BREAKFAST')}
+                  className={`h-8 px-2 text-xs sm:text-sm rounded-full transition-colors ${menuType === 'BREAKFAST' ? 'bg-[var(--header-hover-bg)]' : ''}`}
+                  style={{ color: 'var(--header-text)' }}
+                >
+                  <Sun className="h-3.5 w-3.5 ml-1" />
+                  صبحانه
                 </Button>
               </div>
             )}

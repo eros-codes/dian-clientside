@@ -27,7 +27,7 @@ export function useProducts(
     brand?: string;
     skip?: number;
     take?: number;
-    categoryType?: 'CAFE' | 'RESTAURANT';
+    categoryType?: 'CAFE' | 'RESTAURANT' | 'BREAKFAST';
   },
   options?: { enabled?: boolean },
 ) {
@@ -194,7 +194,7 @@ export function useCreateOrder() {
 }
 
 // Popular products hook (fetch from /products/popular)
-export function usePopularProducts(options?: { limit?: number; categoryType?: 'CAFE' | 'RESTAURANT'; enabled?: boolean }) {
+export function usePopularProducts(options?: { limit?: number; categoryType?: 'CAFE' | 'RESTAURANT' | 'BREAKFAST'; enabled?: boolean }) {
   const limit = options?.limit ?? 8;
   const categoryKey = options?.categoryType ?? 'all';
   return useQuery({
@@ -202,7 +202,7 @@ export function usePopularProducts(options?: { limit?: number; categoryType?: 'C
     queryFn: () =>
       productsApi.getPopular({
         limit,
-        categoryType: options?.categoryType,
+        categoryType: options?.categoryType as any,
       }),
     enabled: options?.enabled ?? true,
     // Popular list can change when product prices/discounts change.

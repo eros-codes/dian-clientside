@@ -194,6 +194,7 @@ export const brandGradients: string[] = [
 export const menuSelectionGradients = {
   restaurant: brandGradients[0],
   cafe: brandGradients[2] ?? brandGradients[0],
+  breakfast: brandGradients[1] ?? brandGradients[0],
 };
 
 // helper to produce rgba strings from hex (مثلاً برای سایه‌ها یا بک‌گراندهای نیمه‌شفاف)
